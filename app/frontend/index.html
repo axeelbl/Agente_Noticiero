@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AxelBot</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <style>
+        /* RESET BÁSICO */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+            background-color: #f2f4f8;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            color: #1f2937;
+        }
+
+        /* =========================
+        HEADER / AVATAR
+        ========================= */
+        #avatarContainer {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 30px 20px 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        #avatar {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto 14px;
+            transition: transform 0.25s ease;
+        }
+
+        #avatar img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #111;
+        }
+
+        #mouthOpenImg {
+            opacity: 0;
+            transition: opacity 0.15s linear;
+        }
+
+        #avatarHalo {
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 3px solid #38bdf8;
+            opacity: 0;
+            box-shadow: 0 0 25px rgba(56,189,248,0.6);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        #avatarName {
+            font-size: 22px;
+            font-weight: 600;
+            color: #e5e7eb;
+            position: relative;
+            left: 5px;
+        }
+
+        #avatarStatus {
+            font-size: 15px;
+            margin-top: 6px;
+            color: #94a3b8;
+            position: relative;
+            left: -4px; 
+        }
+
+        /* =========================
+        CHAT
+        ========================= */
+        .chat-container {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* MENSAJES */
+        .message {
+            padding: 14px 18px;
+            border-radius: 16px;
+            max-width: 70%;
+            line-height: 1.45;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background-color: #ffffff;
+            color: #1f2937;
+            border-bottom-left-radius: 6px;
+        }
+
+        .message {
+            white-space: pre-line;
+        }
+
+        /* =========================
+        INPUT
+        ========================= */
+        .input-container {
+            display: flex;
+            padding: 16px;
+            background: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            gap: 10px;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 14px 16px;
+            font-size: 15px;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+            outline: none;
+        }
+
+        #userInput:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+        }
+
+        #sendBtn {
+            padding: 0 22px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            font-weight: 500;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        #sendBtn:hover {
+            background: #1d4ed8;
+        }
+
+        #clearBtn {
+            padding: 0 18px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            background: #ef4444;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        #clearBtn:hover {
+            background: #dc2626;
+        }
+
+        /* =========================
+        ANIMACIONES
+        ========================= */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* =========================
+        SCROLLBAR
+        ========================= */
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+
+        /* =========================
+        LINKS PERFIL (SVG ICONS)
+        ========================= */
+        #profileLinks {
+            margin-top: 16px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        #profileLinks a {
+            display: flex;
+            align-items: center;
+            justify-content: center;   
+            gap: 8px;
+            width: 110px;              
+            padding: 8px 0;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            text-decoration: none;
+            color: #e5e7eb;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+
+        #profileLinks svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        #profileLinks a:hover {
+            background: rgba(56,189,248,0.15);
+            border-color: #38bdf8;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+
+    </style>
+</head>
+<body>
+    <div id="avatarContainer" style="text-align:center; margin-bottom:10px;">
+        <div id="avatar">
+            <div id="avatarHalo"></div>
+            <img id="baseFace" src="/static/eyes_open_mouth_closed.png">
+            <img id="mouthOpenImg" src="/static/eyes_open_mouth_open.png">
+        </div>
+        <div id="avatarName">Axel Berral López</div>
+        <div id="avatarStatus">🟢 Online</div>
+        <div id="profileLinks">
+            <a href="mailto:axelberrallopez@gmail.com"
+            onclick="window.open('https://mail.google.com/mail/?view=cm&fs=1&to=axelberrallopez@gmail.com'); return false;">
+                <!-- Gmail -->
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 
+                    1.1.9 2 2 2h16c1.1 0 
+                    2-.9 2-2V6c0-1.1-.9-2-2-2zm0 
+                    4-8 5-8-5V6l8 5 8-5v2z"/>
+                </svg>
+                <span>Email</span>
+            </a>
+
+            <a href="https://github.com/axeelbl" target="_blank" aria-label="GitHub">
+                <!-- GitHub -->
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 .5C5.73.5.5 5.74.5 
+                    12.02c0 5.1 3.29 9.43 
+                    7.86 10.96.58.11.79-.25.79-.56 
+                    0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.35-1.29-1.71-1.29-1.71-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.72-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.41-5.25 5.69.41.35.77 1.05.77 2.12 0 1.53-.01 2.76-.01 3.13 0 .31.21.68.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.74 18.27.5 12 .5z"/>
+                </svg>
+                <span>GitHub</span>
+            </a>
+
+            <a href="https://www.linkedin.com/in/axel-berral-lopez-093506229/" target="_blank" aria-label="LinkedIn">
+                <!-- LinkedIn -->
+                <svg viewBox="0 0 24 24">
+                    <path d="M4.98 3.5C4.98 
+                    4.88 3.88 6 2.5 
+                    6S0 4.88 0 3.5 
+                    1.12 1 2.5 1 
+                    4.98 2.12 4.98 3.5zM.5 
+                    8.5h4V23h-4zM8.5 
+                    8.5h3.8v2h.05c.53-1 
+                    1.82-2.05 3.75-2.05 
+                    4 0 4.75 2.63 4.75 
+                    6.05V23h-4v-6.5c0-1.55 
+                    0-3.55-2.17-3.55-2.18 
+                    0-2.52 1.7-2.52 
+                    3.45V23h-4z"/>
+                </svg>
+                <span>LinkedIn</span>
+            </a>
+        </div>
+
+    </div>
+
+    <div class="chat-container" id="chatContainer"></div>
+    <div class="input-container">
+        <input type="text" id="userInput" placeholder="Escribe tu mensaje...">
+        <button type="button" id="sendBtn">Enviar</button>
+        <button type="button" id="clearBtn">Limpiar</button>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
+
+
