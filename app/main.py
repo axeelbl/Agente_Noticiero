@@ -20,12 +20,14 @@ LAST_SENT = 0
 def send_csv_email():
 
     global LAST_SENT
+    mtime = None 
 
     if not os.path.exists("leads.csv"):
         return
     
     # Si no hay cambios desde el último envío → no enviar
     if mtime <= LAST_SENT:
+        print("No hay leads nuevos, no se envía email")
         return
     
     # Fecha de última modificación del CSV
