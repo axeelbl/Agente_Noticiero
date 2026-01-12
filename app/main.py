@@ -51,7 +51,8 @@ def send_csv_email():
 
 def daily_csv_sender():
     while True:
-        time.sleep(86400)  # 24 horas
+        #time.sleep(86400)  # 24 horas
+        time.sleep(60)
         try:
             send_csv_email()
         except Exception as e:
