@@ -245,6 +245,204 @@
             transform: translateY(-1px);
         }
 
+        /* =========================
+        RESPONSIVE / MÓVIL
+        ========================= */
+        @media (max-width: 768px) {
+            #avatar {
+                width: 200px;
+                height: 200px;
+            }
+
+            #avatarName {
+                font-size: 18px;
+            }
+
+            #avatarStatus {
+                font-size: 13px;
+            }
+
+            #profileLinks {
+                gap: 12px;
+            }
+
+            #profileLinks a {
+                width: 90px;
+                font-size: 12px;
+                padding: 6px 0;
+            }
+
+            .chat-container {
+                padding: 16px;
+                gap: 8px;
+            }
+
+            .message {
+                max-width: 90%;
+                font-size: 14px;
+                padding: 12px 14px;
+            }
+
+            .input-container {
+                flex-direction: column;
+                gap: 8px;
+                padding: 12px;
+            }
+
+            #userInput {
+                width: 100%;
+                font-size: 14px;
+                padding: 12px 14px;
+            }
+
+            #sendBtn, #clearBtn {
+                width: 100%;
+                font-size: 14px;
+                padding: 12px 0;
+            }
+        }
+
+        /* Para pantallas muy pequeñas (teléfonos pequeños) */
+        @media (max-width: 480px) {
+            #avatar {
+                width: 160px;
+                height: 160px;
+            }
+
+            #avatarName {
+                font-size: 16px;
+            }
+
+            #avatarStatus {
+                font-size: 12px;
+            }
+
+            .message {
+                font-size: 13px;
+                padding: 10px 12px;
+            }
+        }
+
+        /* =========================
+        MÓVIL: BOTONES EN LA MISMA FILA
+        ========================= */
+        @media (max-width: 768px) {
+
+            .input-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto;
+                gap: 8px;
+                padding: 10px;
+            }
+
+            /* Primera fila: botones */
+            #sendBtn {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            #clearBtn {
+                grid-column: 2;
+                grid-row: 1;
+            }
+
+            /* Segunda fila: input */
+            #userInput {
+                grid-column: 1 / -1;
+                grid-row: 2;
+                font-size: 14px;
+                padding: 12px 14px;
+            }
+
+            /* Botones más compactos */
+            #sendBtn, #clearBtn {
+                font-size: 13px;
+                padding: 8px 0;
+                border-radius: 10px;
+            }
+        }
+
+        /* Teléfonos muy pequeños */
+        @media (max-width: 480px) {
+            #sendBtn, #clearBtn {
+                font-size: 12px;
+                padding: 7px 0;
+            }
+
+            #userInput {
+                font-size: 13px;
+            }
+        }
+
+        /* =========================
+        MÓVIL: HEADER / AVATAR MÁS COMPACTO
+        ========================= */
+        @media (max-width: 768px) {
+
+            #avatarContainer {
+                padding: 18px 14px 14px;
+            }
+
+            #avatar {
+                width: 180px;
+                height: 180px;
+                margin-bottom: 10px;
+            }
+
+            #avatarName {
+                font-size: 17px;
+                margin-top: 4px;
+            }
+
+            #avatarStatus {
+                font-size: 12px;
+                margin-top: 4px;
+            }
+
+            #profileLinks {
+                margin-top: 12px;
+                gap: 10px;
+            }
+
+            #profileLinks a {
+                width: 86px;
+                font-size: 12px;
+                padding: 6px 0;
+            }
+
+            #profileLinks svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        /* Teléfonos muy pequeños */
+        @media (max-width: 480px) {
+
+            #avatar {
+                width: 150px;
+                height: 150px;
+            }
+
+            #avatarName {
+                font-size: 15px;
+            }
+
+            #avatarStatus {
+                font-size: 11px;
+            }
+
+            #profileLinks a {
+                width: 80px;
+                font-size: 11px;
+            }
+        }
+
+
+
+
+
 
     </style>
 </head>
@@ -281,7 +479,7 @@
                 <span>GitHub</span>
             </a>
 
-            <a href="https://www.linkedin.com/in/axel-berral-lopez-093506229/" target="_blank" aria-label="LinkedIn">
+            <a href="https://www.linkedin.com/in/axelbl/" target="_blank" aria-label="LinkedIn">
                 <!-- LinkedIn -->
                 <svg viewBox="0 0 24 24">
                     <path d="M4.98 3.5C4.98 
@@ -306,9 +504,11 @@
 
     <div class="chat-container" id="chatContainer"></div>
     <div class="input-container">
+        
         <input type="text" id="userInput" placeholder="Escribe tu mensaje...">
         <button type="button" id="sendBtn">Enviar</button>
         <button type="button" id="clearBtn">Limpiar</button>
+        
     </div>
     <script src="/static/script.js"></script>
 </body>

@@ -55,19 +55,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
     
 
-    function addMessage(text, sender) {
+   function addUserMessage(text) {
         const msgDiv = document.createElement("div");
-        msgDiv.classList.add("message", sender);
+        msgDiv.classList.add("message", "user");
         msgDiv.textContent = text;
         chatContainer.appendChild(msgDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
+    function addBotMessageTyping(text, speed = 10) {
+        return new Promise(resolve => {
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("message", "bot");
+            chatContainer.appendChild(msgDiv);
+
+            let index = 0;
+
+            function typeChar() {
+                if (index < text.length) {
+                    msgDiv.textContent += text[index];
+                    index++;
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    setTimeout(typeChar, speed);
+                } else {
+                    resolve();
+                }
+            }
+
+            typeChar();
+        });
+    }
+
+
+
     async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;
 
-        addMessage(text, "user");
+        addUserMessage(text);
         userInput.value = "";
 
         avatarStatus.textContent = "🟡 Pensando...";
@@ -81,14 +106,15 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             const data = await response.json();
+            await addBotMessageTyping(data.bot_message);
             stopTalking();
             avatarStatus.textContent = "🟢 Online";
-            addMessage(data.bot_message, "bot");
+
 
         } catch (err) {
             stopTalking();
             avatarStatus.textContent = "🔴 Error";
-            addMessage("Error conectando con el servidor.", "bot");
+            addUserMessage("Error conectando con el servidor.", "bot");
         }
     }
 
@@ -101,10 +127,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Mensaje de bienvenida automático
     setTimeout(() => {
-        addMessage(
+        addBotMessageTyping(
             "¡Hola! 👋 Soy AxelBot, un chatbot que actúa como mi clon profesional.\n\n" +
-            "Puedes preguntarme sobre mi experiencia, proyectos, estudios, habilidades técnicas o cualquier otra cosa que quieras saber sobre mí.",
-            "bot"
+            "Puedes preguntarme sobre mi experiencia, proyectos, estudios, habilidades técnicas o cualquier otra cosa que quieras saber sobre mí."
         );
     }, 300);
 
