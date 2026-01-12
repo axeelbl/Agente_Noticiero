@@ -15,51 +15,46 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Attachment
 from sendgrid.helpers.mail import FileContent, FileName, FileType, Disposition
 
-LAST_SENT = 0 
+LAST_SENT = 0
 
 def send_csv_email():
-
     global LAST_SENT
-    mtime = None 
 
     if not os.path.exists("leads.csv"):
         return
-    
-    # Si no hay cambios desde el último envío → no enviar
-    if mtime <= LAST_SENT:
-        print("No hay leads nuevos, no se envía email")
-        return
-    
-    # Fecha de última modificación del CSV
-    mtime = os.path.getmtime("leads.csv")
-
-    # Leer el CSV y codificarlo en base64 para SendGrid
-    with open("leads.csv", "rb") as f:
-        data = f.read()
-        encoded_file = base64.b64encode(data).decode()
-
-    # Crear adjunto
-    attachment = Attachment()
-    attachment.file_content = FileContent(encoded_file)
-    attachment.file_type = FileType('text/csv')
-    attachment.file_name = FileName('leads.csv')
-    attachment.disposition = Disposition('attachment')
-
-    # Crear mensaje
-    message = Mail(
-        from_email=os.getenv("SENDGRID_FROM"),  # email verificado en SendGrid
-        to_emails=os.getenv("SENDGRID_TO"),
-        subject="AxelBot – Leads (últimas 24h)",
-        plain_text_content="Adjunto el archivo leads.csv con los datos recogidos en las últimas 24 horas."
-    )
-    message.attachment = attachment
 
     try:
+        mtime = os.path.getmtime("leads.csv")
+
+        if mtime <= LAST_SENT:
+            print("No hay leads nuevos, no se envía email")
+            return
+
+        with open("leads.csv", "rb") as f:
+            data = f.read()
+            encoded_file = base64.b64encode(data).decode()
+
+        attachment = Attachment()
+        attachment.file_content = FileContent(encoded_file)
+        attachment.file_type = FileType("text/csv")
+        attachment.file_name = FileName("leads.csv")
+        attachment.disposition = Disposition("attachment")
+
+        message = Mail(
+            from_email=os.getenv("SENDGRID_FROM"),
+            to_emails=os.getenv("SENDGRID_TO"),
+            subject="AxelBot – Leads (nuevos)",
+            plain_text_content="Hay nuevos leads nuevos desde el último envío. CSV adjunto."
+        )
+        message.attachment = attachment
+
         sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
         response = sg.send(message)
-        print("CSV enviado, status code:", response.status_code)
-        # actualizar último envío SOLO si se envía bien
+        print("CSV enviado, status:", response.status_code)
+
+        # 🔒 SOLO actualizamos si el envío fue correcto
         LAST_SENT = mtime
+
     except Exception as e:
         print("Error enviando CSV:", e)
 
