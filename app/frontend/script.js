@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let mouthOpen = false;
     let talkingInterval = null;
-
+    // Sorry about the spaghetti code here, I'm in a hurry. Axel :) 
     // Parpadeo independiente
     setInterval(() => {
         if (talkingInterval) return;
@@ -67,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return new Promise(resolve => {
             const msgDiv = document.createElement("div");
             msgDiv.classList.add("message", "bot");
+            msgDiv.style.animation = "none";
             chatContainer.appendChild(msgDiv);
 
             let index = 0;
@@ -76,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     msgDiv.textContent += text[index];
                     index++;
                     chatContainer.scrollTop = chatContainer.scrollHeight;
+                    msgDiv.offsetHeight;
                     setTimeout(typeChar, speed);
                 } else {
                     resolve();
