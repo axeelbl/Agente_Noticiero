@@ -15,10 +15,21 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Attachment
 from sendgrid.helpers.mail import FileContent, FileName, FileType, Disposition
 
+LAST_SENT = 0 
 
 def send_csv_email():
+
+    global LAST_SENT
+
     if not os.path.exists("leads.csv"):
         return
+    
+    # Si no hay cambios desde el último envío → no enviar
+    if mtime <= LAST_SENT:
+        return
+    
+    # Fecha de última modificación del CSV
+    mtime = os.path.getmtime("leads.csv")
 
     # Leer el CSV y codificarlo en base64 para SendGrid
     with open("leads.csv", "rb") as f:
@@ -45,6 +56,8 @@ def send_csv_email():
         sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
         response = sg.send(message)
         print("CSV enviado, status code:", response.status_code)
+        # actualizar último envío SOLO si se envía bien
+        LAST_SENT = mtime
     except Exception as e:
         print("Error enviando CSV:", e)
 
