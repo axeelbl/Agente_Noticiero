@@ -77,9 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     msgDiv.textContent += text[index];
                     index++;
                     chatContainer.scrollTop = chatContainer.scrollHeight;
-                    msgDiv.style.display = 'none';
-                    msgDiv.offsetHeight; // trigger reflow
-                    msgDiv.style.display = 'block';
+                    msgDiv.offsetHeight;
                     setTimeout(typeChar, speed);
                 } else {
                     resolve();
