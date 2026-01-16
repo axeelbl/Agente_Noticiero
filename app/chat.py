@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# Cargar prompt desde archivo si quieres más limpio
 SYSTEM_PROMPT = """
 Eres Axel Berral López y actúas como mi clon profesional.
 

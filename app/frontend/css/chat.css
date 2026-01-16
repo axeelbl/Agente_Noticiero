@@ -1,0 +1,37 @@
+/* =========================
+CHAT
+========================= */
+.chat-container {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* MENSAJES */
+.message {
+    padding: 14px 18px;
+    border-radius: 16px;
+    max-width: 70%;
+    line-height: 1.45;
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    animation: fadeIn 0.2s ease;
+    white-space: pre-line;
+}
+
+.message.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    border-bottom-right-radius: 6px;
+}
+
+.message.bot {
+    align-self: flex-start;
+    background-color: #ffffff;
+    color: #1f2937;
+    border-bottom-left-radius: 6px;
+}

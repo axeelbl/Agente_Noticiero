@@ -15,14 +15,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let mouthOpen = false;
     let talkingInterval = null;
-    // Sorry about the spaghetti code here, I'm in a hurry. Axel :) 
     // Parpadeo independiente
     setInterval(() => {
         if (talkingInterval) return;
 
-        baseFace.src = "/static/eyes_closed_mouth_closed.png";
+        baseFace.src = "/static/pictures/eyes_closed_mouth_closed.png";
         setTimeout(() => {
-            baseFace.src = "/static/eyes_open_mouth_closed.png";
+            baseFace.src = "/static/pictures/eyes_open_mouth_closed.png";
         }, 200);
     }, 4000);
 
