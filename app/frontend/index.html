@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AxelBot</title>
+    <title>PeluqueriaBot</title>
     <link rel="icon" type="image/png" href="/static/pictures/favicon.png">
     <link rel="stylesheet" href="/static/css/main.css">
 </head>
@@ -14,7 +14,7 @@
             <img id="baseFace" src="/static/pictures/eyes_open_mouth_closed.png">
             <img id="mouthOpenImg" src="/static/pictures/eyes_open_mouth_open.png">
         </div>
-        <div id="avatarName">Axel Berral López</div>
+        <div id="avatarName">Peluquería Bot</div>
         <div id="avatarStatus">🟢 Online</div>
         <div id="profileLinks">
             <a href="mailto:axelberrallopez@gmail.com"
@@ -40,24 +40,14 @@
                 <span>GitHub</span>
             </a>
 
-            <a href="https://www.linkedin.com/in/axelbl/" target="_blank" aria-label="LinkedIn">
-                <!-- LinkedIn -->
+            <a href="#" id="reserveBtn" aria-label="Pedir cita">
+                <!-- Calendario -->
                 <svg viewBox="0 0 24 24">
-                    <path d="M4.98 3.5C4.98 
-                    4.88 3.88 6 2.5 
-                    6S0 4.88 0 3.5 
-                    1.12 1 2.5 1 
-                    4.98 2.12 4.98 3.5zM.5 
-                    8.5h4V23h-4zM8.5 
-                    8.5h3.8v2h.05c.53-1 
-                    1.82-2.05 3.75-2.05 
-                    4 0 4.75 2.63 4.75 
-                    6.05V23h-4v-6.5c0-1.55 
-                    0-3.55-2.17-3.55-2.18 
-                    0-2.52 1.7-2.52 
-                    3.45V23h-4z"/>
+                    <path d="M7 2v2H5c-1.1 0-2 .9-2 
+                    2v14c0 1.1.9 2 2 2h14c1.1 
+                    0 2-.9 2-2V6c0-1.1-.9-2-2-2h-2V2h-2v2H9V2H7zm12 18H5V9h14v11z"/>
                 </svg>
-                <span>LinkedIn</span>
+                <span>Pedir cita</span>
             </a>
         </div>
 
@@ -71,7 +61,39 @@
         <button type="button" id="clearBtn">Limpiar</button>
         
     </div>
+
+
+    <div id="bookingModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>📅 Reservar cita</h2>
+
+            <form id="bookingForm">
+                <input type="text" name="name" placeholder="Nombre completo" required>
+
+                <select name="service" required>
+                    <option value="">Servicio</option>
+                    <option value="Corte">✂️ Corte</option>
+                    <option value="Barba">🧔 Barba</option>
+                    <option value="Corte + Barba">✂️🧔 Corte + Barba</option>
+                </select>
+
+                <input type="date" name="date" required>
+                <select name="time" id="timeSelect" required>
+                    <option value="">Selecciona una hora</option>
+                </select>
+
+                <input type="text" name="contact" placeholder="Teléfono o email" required>
+
+                <div class="modal-actions">
+                    <button type="submit">Confirmar cita</button>
+                    <button type="button" id="closeModal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/static/script.js"></script>
+    <script src="/static/booking.js"></script>
 </body>
 </html>
 

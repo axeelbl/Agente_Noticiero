@@ -129,8 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Mensaje de bienvenida automático
     setTimeout(() => {
         addBotMessageTyping(
-            "¡Hola! 👋 Soy AxelBot, un chatbot que actúa como mi clon profesional.\n\n" +
-            "Puedes preguntarme sobre mi experiencia, proyectos, estudios, habilidades técnicas o cualquier otra cosa que quieras saber sobre mí."
+            "¡Hola! 👋 Soy el PeluqueroBot, tu peluquero profesional.\n\n" +
+            "Puedes preguntarme sobre mi, cortes de pelo, precios y mucho más..."
         );
     }, 300);
 
@@ -142,6 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     clearBtn.addEventListener("click", clearChat);
+
 
 
 });
