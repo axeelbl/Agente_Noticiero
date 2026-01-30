@@ -1,5 +1,3 @@
-// SCRIPT PARA RESERVAR CITA
-
 document.addEventListener("DOMContentLoaded", () => {
     const reserveBtn = document.getElementById("reserveBtn");
     const modal = document.getElementById("bookingModal");
@@ -17,18 +15,17 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.classList.remove("hidden");
     });
 
-    // Cerrar modal
     closeBtn.addEventListener("click", () => {
         modal.classList.add("hidden");
     });
 
-    // Cambiar fecha → cargar horas
+    // 🔹 Cargar horas disponibles
     dateInput.addEventListener("change", async () => {
         const date = dateInput.value;
         timeSelect.innerHTML = "<option>Cargando...</option>";
 
         try {
-            const res = await fetch(`/availability?date=${date}`);
+            const res = await fetch(`/booking/availability?date=${date}`);
             const hours = await res.json();
 
             timeSelect.innerHTML = "";
@@ -44,36 +41,37 @@ document.addEventListener("DOMContentLoaded", () => {
                 option.textContent = hour;
                 timeSelect.appendChild(option);
             });
-        } catch {
+
+        } catch (err) {
             timeSelect.innerHTML = "<option>Error cargando horas</option>";
         }
     });
 
     dateInput.min = new Date().toISOString().split("T")[0];
-    
-    // Enviar formulario
+
+    // 🔹 Enviar reserva
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
+        const data = Object.fromEntries(new FormData(form));
 
         try {
-            const response = await fetch("/book", {
+            const response = await fetch("/booking/reserve", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)
             });
 
-            if (response.ok) {
-                alert("✅ Cita reservada correctamente");
-                modal.classList.add("hidden");
-                form.reset();
-            } else {
-                alert("❌ Error al reservar la cita");
+            if (!response.ok) {
+                throw new Error("Hora ocupada");
             }
-        } catch {
-            alert("❌ Error de conexión");
+
+            alert("✅ Cita reservada correctamente");
+            modal.classList.add("hidden");
+            form.reset();
+
+        } catch (err) {
+            alert("❌ Esa hora ya no está disponible");
         }
     });
 });

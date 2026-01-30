@@ -7,14 +7,21 @@ from .chat import SYSTEM_PROMPT, ask_groq
 from .csv_utils import save_lead
 from .email_utils import send_csv_email
 import time, os
+from app.backend.booking.database import init_db
+from app.backend.booking.routes import router as booking_router
 
 # Base del proyecto (carpeta "app")
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 app = FastAPI(title="AxelBot API", version="1.0")
 
+# Montar Database
+init_db()
+app.include_router(booking_router)
+
 # Montar frontend
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "frontend")), name="static")
+
 
 # CORS
 origins = ["http://localhost", "http://127.0.0.1"]
