@@ -67,6 +67,23 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             alert("✅ Cita reservada correctamente");
+
+            const { name, service, date, time, contact } = data;
+
+           if (window.chatUI) {
+                window.chatUI.addBotMessageTyping(
+                    "✅ **Reserva confirmada** ✂️\n\n" +
+                    `👤 Cliente: ${name}\n` +
+                    `✂️ Servicio: ${service}\n` +
+                    `📅 Fecha: ${date}\n` +
+                    `⏰ Hora: ${time}\n\n` +
+                    `📩 Te hemos enviado la confirmación a:\n${contact}\n\n` +
+                    "⚠️ Si no ves el mensaje, revisa la carpeta de **spam**.\n\n" +
+                    "¿Quieres cambiar algo o reservar otra cita?"
+                );
+                alert("FUNCIONA");
+            }
+
             modal.classList.add("hidden");
             form.reset();
 

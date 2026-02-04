@@ -19,6 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     const chat = new ChatController(ui, avatar, "/chat");
+ 
+    // HACERLO GLOBAL - I know this is not the most good way to do it, but I'm hurry now
+    window.chatUI = ui;
 
     // Mensaje de bienvenida
     setTimeout(() => {

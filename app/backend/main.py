@@ -9,6 +9,9 @@ from .email_utils import send_csv_email
 import time, os
 from app.backend.booking.database import init_db
 from app.backend.booking.routes import router as booking_router
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # Base del proyecto (carpeta "app")
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
