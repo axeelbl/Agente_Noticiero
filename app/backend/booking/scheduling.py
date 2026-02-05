@@ -35,3 +35,16 @@ def is_closed_day(date_str: str) -> bool:
         return True
 
     return False
+
+
+def parse_date(date_str: str) -> str:
+    """
+    Convierte DD/MM/YYYY o YYYY-MM-DD a YYYY-MM-DD
+    """
+    try:
+        # Intentar DD/MM/YYYY
+        dt = datetime.strptime(date_str, "%d/%m/%Y")
+    except ValueError:
+        # Intentar YYYY-MM-DD
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+    return dt.strftime("%Y-%m-%d")
