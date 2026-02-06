@@ -9,31 +9,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!dateInput || !timeSelect) return;
 
-    // Abrir modal
-    reserveBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        modal.classList.remove("hidden");
-    });
+    // FUNCIÓN GLOBAL → SIEMPRE pide al backend
+    window.loadAvailableHours = async function (date) {
+        if (!date) {
+            timeSelect.innerHTML = "<option>Selecciona una hora</option>";
+            timeSelect.value = "";
+            return;
+        }
 
-    closeBtn.addEventListener("click", () => {
-        modal.classList.add("hidden");
-    });
-
-    // 🔹 Cargar horas disponibles
-    dateInput.addEventListener("change", async () => {
-        const date = dateInput.value;
         timeSelect.innerHTML = "<option>Cargando...</option>";
+        timeSelect.value = "";
 
         try {
-            const res = await fetch(`/booking/availability?date=${date}`);
+            const res = await fetch(
+                `/booking/availability?date=${date}&_=${Date.now()}`,
+                { cache: "no-store" }
+            );
+
             const hours = await res.json();
 
             timeSelect.innerHTML = "";
+            timeSelect.value = "";
 
             if (!hours.length) {
                 timeSelect.innerHTML = "<option>No hay horas disponibles</option>";
                 return;
             }
+
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = "Selecciona una hora";
+            placeholder.disabled = true;
+            placeholder.selected = true;
+            timeSelect.appendChild(placeholder);
 
             hours.forEach(hour => {
                 const option = document.createElement("option");
@@ -42,14 +50,39 @@ document.addEventListener("DOMContentLoaded", () => {
                 timeSelect.appendChild(option);
             });
 
-        } catch (err) {
+        } catch {
             timeSelect.innerHTML = "<option>Error cargando horas</option>";
         }
+    };
+
+    // ABRIR MODAL → INVALIDA ESTADO ANTERIOR
+    reserveBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        modal.classList.remove("hidden");
+
+        // Reset TOTAL
+        timeSelect.innerHTML = "<option>Selecciona una hora</option>";
+        timeSelect.value = "";
+
+        // Fuerza SIEMPRE recarga si hay fecha
+        if (dateInput.value) {
+            window.loadAvailableHours(dateInput.value);
+        }
+    });
+
+
+    closeBtn.addEventListener("click", () => {
+        modal.classList.add("hidden");
+    });
+
+    // Cambio de fecha → recarga
+    dateInput.addEventListener("change", () => {
+        window.loadAvailableHours(dateInput.value);
     });
 
     dateInput.min = new Date().toISOString().split("T")[0];
 
-    // 🔹 Enviar reserva
+    // Enviar reserva desde modal
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -63,31 +96,33 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (!response.ok) {
-                throw new Error("Hora ocupada");
+                throw new Error();
             }
 
             alert("✅ Cita reservada correctamente");
 
             const { name, service, date, time, contact } = data;
 
-           if (window.chatUI) {
+            if (window.chatUI) {
                 window.chatUI.addBotMessageTyping(
                     "✅ **Reserva confirmada** ✂️\n\n" +
                     `👤 Cliente: ${name}\n` +
                     `✂️ Servicio: ${service}\n` +
                     `📅 Fecha: ${date}\n` +
                     `⏰ Hora: ${time}\n\n` +
-                    `📩 Te hemos enviado la confirmación a:\n${contact}\n\n` +
-                    "⚠️ Si no ves el mensaje, revisa la carpeta de **spam**.\n\n" +
+                    `📩 Confirmación enviada a:\n${contact}\n\n` +
                     "¿Quieres cambiar algo o reservar otra cita?"
                 );
-                alert("FUNCIONA");
             }
 
             modal.classList.add("hidden");
             form.reset();
 
-        } catch (err) {
+            // limpia también el select manualmente
+            timeSelect.innerHTML = "<option>Selecciona una hora</option>";
+            timeSelect.value = "";
+
+        } catch {
             alert("❌ Esa hora ya no está disponible");
         }
     });
