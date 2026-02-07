@@ -10,10 +10,29 @@ def handle_booking(decision, background_tasks):
     REQUIRED_FIELDS = ["name", "service", "date", "time", "contact"]
     missing_fields = [f for f in REQUIRED_FIELDS if not booking_data.get(f)]
 
+    FIELD_LABELS = {
+        "name": "tu nombre",
+        "service": "el servicio que quieres (Corte, Barba o Corte + Barba)",
+        "date": "el día de la cita (dia/mes/año)",
+        "time": "la hora (24:00)",
+        "contact": "un teléfono o email de contacto"
+    }
+
     if missing_fields:
-        return {
-            "bot_message": f"Para hacer la reserva necesito que me digas: {', '.join(missing_fields)}"
-        }
+        friendly_fields = [FIELD_LABELS[f] for f in missing_fields]
+
+        if len(friendly_fields) == 1:
+            msg = f"Para hacer la reserva necesito que me digas {friendly_fields[0]}."
+        else:
+            msg = (
+                "Para hacer la reserva necesito que me digas "
+                + ", ".join(friendly_fields[:-1])
+                + " y "
+                + friendly_fields[-1]
+                + "."
+            )
+
+        return {"bot_message": msg}
 
     if booking_data.get("date"):
         booking_data["date"] = parse_date(booking_data["date"])
