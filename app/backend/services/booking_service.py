@@ -1,8 +1,8 @@
 from app.backend.booking.models import BookingRequest
 from app.backend.booking.repository import save_booking
-from app.backend.booking.scheduling import is_closed_day, parse_date
+from app.backend.booking.scheduling import is_closed_day, parse_date, parse_time_flexible, get_nearby_free_slots, WORKING_HOURS
 from app.backend.booking.notifications import send_booking_notification
-from app.backend.booking.booking_routes import WORKING_HOURS
+
 
 def handle_booking(decision, background_tasks):
     booking_data = decision.get("booking", {})
@@ -41,6 +41,33 @@ def handle_booking(decision, background_tasks):
         return {
             "bot_message": "Lo siento, ese día estamos cerrados o ya pasó. Por favor elige otro día."
         }
+
+    try:
+        requested_minutes = parse_time_flexible(booking_data["time"])
+    except ValueError:
+        return {
+            "bot_message": "No he entendido bien la hora. ¿Puedes decirme otra?"
+        }
+
+    # Si la hora coincide exactamente con un slot
+    requested_time_str = f"{requested_minutes // 60:02d}:{requested_minutes % 60:02d}"
+
+    if requested_time_str in WORKING_HOURS:
+        booking_data["time"] = requested_time_str
+    else:
+        options = get_nearby_free_slots(booking_data["date"],requested_minutes)
+        if not options:
+            return {
+                "bot_message": "Lo siento, ese día ya no quedan horas disponibles."
+            }
+        return {
+            "bot_message": (
+                f"A esa hora no tenemos un bloque exacto. "
+                f"¿Te viene bien alguna de estas opciones? "
+                f"{' · '.join(options)}"
+            )
+        }
+
 
     if booking_data["time"] not in WORKING_HOURS:
         return {
