@@ -27,7 +27,14 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
         ui.addBotMessageTyping(
             "¡Hola! 👋 Soy el PeluqueroBot, tu peluquero profesional.\n\n" +
-            "Puedes preguntarme sobre mi, cortes de pelo, precios y mucho más..."
+            "Puedo ayudarte con cortes, precios, reservar cita y enseñarte fotos 📸✂️\n\n" +
+            "👉 Para una cita, dime que quieres reservar y estos datos juntos:\n" +
+            "• Tu nombre\n" +
+            "• Servicio (Corte, Barba o Corte + Barba)\n" +
+            "• Día (dd/mm/aaaa)\n" +
+            "• Hora (24h)\n" +
+            "• Teléfono o email\n\n" +
+            "👉 Para ver fotos, solo escribe: ver fotos"
         );
     }, 300);
 });

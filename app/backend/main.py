@@ -6,7 +6,6 @@ app = create_app()
 # Arreglar bug de reservar hora cuando la de antes no ha funcionado, a la tercera funciona
 # Crear funcion de ver horarios disponibles
 # leads en reserva?
-# Mejorar Prompt para hacer más facil reservar
 # Cambiar reserva?
 # Anular reserva?
 
