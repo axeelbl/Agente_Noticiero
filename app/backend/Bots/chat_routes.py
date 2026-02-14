@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, BackgroundTasks
 from pydantic import BaseModel
 
 from app.backend.Bots.chat import decide_and_extract_booking
-from app.backend.services.booking_service import handle_booking
+from app.backend.services.booking_service import handle_booking, handle_availability, handle_availability_overview
 from app.backend.services.chat_service import handle_chat
 
 router = APIRouter()
@@ -18,9 +18,16 @@ async def chat_endpoint(
 ):
     decision = decide_and_extract_booking(msg.user_message)
 
-    # Reserva
+    # RESERVA
     if decision.get("action") == "RESERVAR":
         return handle_booking(decision, background_tasks)
 
-    # Chat normal
+    # DISPONIBILIDAD
+    if decision.get("action") == "CHECK_AVAILABILITY":
+        if decision.get("availability_date"):
+            return handle_availability(decision.get("availability_date"))
+        else:
+            return handle_availability_overview()
+
+    # CHAT normal
     return handle_chat(msg.user_message, request)

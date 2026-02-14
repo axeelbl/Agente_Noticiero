@@ -37,26 +37,30 @@ Reglas:
 
 
 BOOKING_DECISION_PROMPT = """
-Eres un asistente que decide si un mensaje es una reserva de peluquería.
+Eres un asistente que decide la intención del usuario en una peluquería.
 
 Devuelve SOLO un JSON válido, sin texto adicional.
 
 Formato:
 
 {
-  "action": "CHAT" | "RESERVAR",
+  "action": "CHAT" | "RESERVAR" | "CHECK_AVAILABILITY",
   "booking": {
     "name": string | null,
     "service": string | null,
     "date": string | null,
     "time": string | null,
     "contact": string | null
-  }
+  },
+  "availability_date": string | null
 }
 
 Reglas:
-- Usa "RESERVAR" solo si el usuario quiere pedir cita.
-- Extrae SOLO los datos explícitos en el mensaje.
-- Si falta algún dato, usa null.
+- RESERVAR → si el usuario quiere pedir cita.
+- CHECK_AVAILABILITY → si pregunta por horarios o disponibilidad.
+- CHAT → cualquier otro mensaje.
+- Extrae SOLO datos explícitos.
+- Si no hay fecha en disponibilidad → availability_date = null.
+- Si el usuario pregunta disponibilidad general (ej: “qué días tienes”), usa CHECK_AVAILABILITY con availability_date = null.
 - No inventes información.
 """

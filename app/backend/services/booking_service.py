@@ -97,3 +97,72 @@ def handle_booking(decision, background_tasks):
             f"Te esperamos en Pepito de los Palotes 3."
         )
     }
+
+
+from app.backend.booking.repository import get_booked_hours
+from app.backend.booking.scheduling import WORKING_HOURS, is_closed_day, parse_date
+
+
+def handle_availability(date_str: str | None):
+
+    if not date_str:
+        return {
+            "bot_message": "¿Para qué día quieres ver la disponibilidad?"
+        }
+
+    try:
+        date = parse_date(date_str)
+    except Exception:
+        return {
+            "bot_message": "No he entendido la fecha. Escríbela en formato día/mes/año."
+        }
+
+    if is_closed_day(date):
+        return {
+            "bot_message": "Ese día estamos cerrados o ya pasó."
+        }
+
+    booked = get_booked_hours(str(date))
+    free = [h for h in WORKING_HOURS if h not in booked]
+
+    if not free:
+        return {
+            "bot_message": "Ese día está completo."
+        }
+
+    return {
+        "bot_message": f"Horarios disponibles el {date}:\n" + " · ".join(free)
+    }
+
+
+from datetime import datetime, timedelta
+
+
+def handle_availability_overview(days_ahead: int = 7):
+    today = datetime.today().date()
+
+    result_lines = []
+
+    for i in range(days_ahead):
+        date = today + timedelta(days=i)
+
+        if is_closed_day(str(date)):
+            continue
+
+        booked = get_booked_hours(str(date))
+        free = [h for h in WORKING_HOURS if h not in booked]
+
+        if free:
+            result_lines.append(
+                f"{date.strftime('%d/%m/%Y')} → {', '.join(free)}"
+            )
+
+    if not result_lines:
+        return {"bot_message": "No hay disponibilidad en los próximos días."}
+
+    return {
+        "bot_message":
+            "Estos son los próximos días con disponibilidad:\n\n"
+            + "\n".join(result_lines)
+            + "\n\n¿Quieres reservar alguno?"
+    }
