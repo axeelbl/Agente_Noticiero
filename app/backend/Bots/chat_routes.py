@@ -4,6 +4,9 @@ from pydantic import BaseModel
 from app.backend.Bots.chat import decide_and_extract_booking
 from app.backend.services.booking_service import handle_booking, handle_availability, handle_availability_overview
 from app.backend.services.chat_service import handle_chat
+from app.backend.csv_utils import save_lead
+from app.backend.email_utils import send_csv_email
+import time
 
 router = APIRouter()
 
@@ -16,18 +19,42 @@ async def chat_endpoint(
     request: Request,
     background_tasks: BackgroundTasks
 ):
-    decision = decide_and_extract_booking(msg.user_message)
+    user_message = msg.user_message
+    decision = decide_and_extract_booking(user_message)
+
+    # Función para guardar lead y enviar CSV
+    def record_lead(bot_reply: str):
+        meta = {
+            "ip": request.client.host,
+            "user_agent": request.headers.get("user-agent", ""),
+            "language": request.headers.get("accept-language", ""),
+            "referer": request.headers.get("referer", ""),
+            "response_time": round(time.time() - start_time, 2)
+        }
+        save_lead(user_message, bot_reply, meta)
+        try:
+            send_csv_email()
+        except Exception as e:
+            print("Error enviando CSV:", e)
+
+    start_time = time.time()  # Para medir tiempo de respuesta
 
     # RESERVA
     if decision.get("action") == "RESERVAR":
-        return handle_booking(decision, background_tasks)
+        response = handle_booking(decision, background_tasks)
+        record_lead(response["bot_message"])
+        return response
 
     # DISPONIBILIDAD
     if decision.get("action") == "CHECK_AVAILABILITY":
         if decision.get("availability_date"):
-            return handle_availability(decision.get("availability_date"))
+            response = handle_availability(decision.get("availability_date"))
         else:
-            return handle_availability_overview()
+            response = handle_availability_overview()
+        record_lead(response["bot_message"])
+        return response
 
     # CHAT normal
-    return handle_chat(msg.user_message, request)
+    response = handle_chat(user_message, request)
+    record_lead(response["bot_message"])
+    return response
