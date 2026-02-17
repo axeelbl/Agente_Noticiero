@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from app.backend.booking.models import BookingRequest
-from app.backend.booking.repository import save_booking, get_booked_hours
+from app.backend.booking.repository import save_booking, get_booked_hours, update_booking, get_booking_by_uuid
 from app.backend.booking.scheduling import is_closed_day, parse_date, parse_time_flexible, get_nearby_free_slots, WORKING_HOURS
 from app.backend.booking.notifications import send_booking_notification
 
@@ -164,4 +164,76 @@ def handle_availability_overview(days_ahead: int = 7):
             "Estos son los próximos días con disponibilidad:\n\n"
             + "\n".join(result_lines)
             + "\n\n¿Quieres reservar alguno?"
+    }
+
+
+
+def handle_modify_booking(decision, background_tasks):
+    booking_data = decision.get("booking", {})
+    booking_uuid = booking_data.get("booking_uuid")
+    new_date = booking_data.get("date")
+    new_time = booking_data.get("time")
+
+    if not booking_uuid:
+        return {"bot_message": "Necesito tu ID de reserva para modificarla."}
+
+    if not new_date and not new_time:
+        return {"bot_message": "Indica al menos un nuevo día o una nueva hora para la cita."}
+
+    # Obtener la reserva existente
+    booking = get_booking_by_uuid(booking_uuid)
+    if not booking:
+        return {"bot_message": f"No encontré ninguna reserva con ID {booking_uuid}."}
+
+    # Si no envían alguno de los datos, mantenemos el existente
+    if not new_date:
+        new_date = booking[4]  # columna date
+    else:
+        # Parseamos la fecha "humana" a YYYY-MM-DD
+        try:
+            new_date = parse_date(new_date)
+        except ValueError:
+            return {"bot_message": "No entendí la fecha nueva. Escribe día/mes/año."}
+
+    if not new_time:
+        new_time = booking[5]  # columna time
+    else:
+        # Parseamos hora flexible a formato HH:MM
+        try:
+            minutes = parse_time_flexible(new_time)
+            new_time = f"{minutes // 60:02d}:{minutes % 60:02d}"
+        except ValueError:
+            return {"bot_message": "No entendí la hora nueva. Intenta con algo como 16:30 o cuatro y media."}
+
+    # Validaciones
+    if is_closed_day(new_date):
+        return {"bot_message": "Ese día estamos cerrados o ya pasó, elige otro día."}
+
+    booked = get_booked_hours(str(new_date))
+    if new_time in booked:
+        return {"bot_message": f"La hora {new_time} no está disponible ese día."}
+
+    # Actualizar reserva
+    try:
+        update_booking(booking_uuid, new_date, new_time)
+    except Exception as e:
+        return {"bot_message": "Error modificando la reserva: " + str(e)}
+
+    # Notificar al usuario por email
+    background_tasks.add_task(
+        send_booking_notification,
+        booking[6],  # contact
+        booking[2],  # name
+        booking[3],  # service
+        str(new_date),
+        new_time,
+        booking_uuid
+    )
+
+    return {
+        "bot_message": (
+            f"Perfecto, tu cita ha sido modificada: "
+            f"{booking[3]} el {new_date} a las {new_time}. "
+            f"ID de reserva: {booking_uuid}"
+        )
     }

@@ -59,6 +59,7 @@ Reglas:
 - RESERVAR → si el usuario quiere pedir cita.
 - CHECK_AVAILABILITY → si pregunta por horarios o disponibilidad.
 - CHAT → cualquier otro mensaje.
+- MODIFY_BOOKING → si el usuario quiere cambiar una cita. Extrae booking_uuid, nuevo día y nueva hora si están disponibles.
 - Extrae SOLO datos explícitos.
 - Si no hay fecha en disponibilidad → availability_date = null.
 - Si el usuario pregunta disponibilidad general (ej: “qué días tienes”), usa CHECK_AVAILABILITY con availability_date = null.
