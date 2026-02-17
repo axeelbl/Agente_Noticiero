@@ -1,3 +1,5 @@
+# RUTAS DE LA API PARA PODER GESTIONAR LAS RESERVAS DE MANERA MANUAL
+
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from .models import BookingRequest
 from .repository import get_booked_hours, save_booking

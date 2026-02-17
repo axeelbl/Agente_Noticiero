@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
         ui.addBotMessageTyping(
             "¡Hola! 👋 Soy el PeluqueroBot, tu peluquero profesional.\n\n" +
-            "Puedo ayudarte con cortes, precios, reservar cita y enseñarte fotos 📸✂️\n\n" +
+            "Puedo ayudarte con cortes, precios, reservar cita, modificar o anular citas y enseñarte fotos de los cortes 📸✂️\n\n" +
             "👉 Para una cita, dime que quieres reservar y estos datos juntos:\n" +
             "• Tu nombre\n" +
             "• Servicio (Corte, Barba o Corte + Barba)\n" +
