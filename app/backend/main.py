@@ -4,8 +4,7 @@ app = create_app()
 
 
 # Arreglar bug de reservar hora cuando la de antes no ha funcionado, a la tercera funciona
-# Anular reserva?
 # Añadir cambiar cita de manera manual
-
 # Cambiar mensaje reservas de manual y de chat.
+
 # Añadir ver Fotos de cortes

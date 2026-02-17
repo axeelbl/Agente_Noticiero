@@ -257,17 +257,17 @@ def handle_cancel_booking(decision, background_tasks):
     except Exception as e:
         return {"bot_message": "Error cancelando la reserva: " + str(e)}
 
-    # Opcional: notificar al usuario que se canceló
-    # background_tasks.add_task(
-    #     send_booking_notification,
-    #     booking[6],  # contact
-    #     booking[2],  # name
-    #     booking[3],  # service
-    #     booking[4],  # date
-    #     booking[5],  # time
-    #     booking_uuid,
-    #     cancelled=True  # Podrías usar un flag en send_booking_notification
-    # )
+    # Notificar al usuario que se canceló
+    background_tasks.add_task(
+        send_booking_notification,
+        booking[6],  # contact
+        booking[2],  # name
+        booking[3],  # service
+        booking[4],  # date
+        booking[5],  # time
+        booking_uuid,
+        cancelled=True  # Flag para decir que está cancelado
+    )
 
     return {
         "bot_message": (
