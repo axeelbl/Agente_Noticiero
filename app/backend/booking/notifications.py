@@ -21,16 +21,17 @@ def is_phone(contact: str) -> bool:
     return re.fullmatch(r"\+?\d{9,15}", contact) is not None
 
 
-def send_booking_notification(contact, name, service, date, time):
+def send_booking_notification(contact, name, service, date, time, booking_uuid=None):
     if is_email(contact):
-        send_booking_email(contact, name, service, date, time)
+        send_booking_email(contact, name, service, date, time, booking_uuid)
     elif is_phone(contact):
-        send_booking_sms(contact, name, service, date, time)
+        send_booking_sms(contact, name, service, date, time, booking_uuid)
     else:
         print("Contacto no válido:", contact)
 
 
-def send_booking_email(to_email, name, service, date, time):
+def send_booking_email(to_email, name, service, date, time, booking_uuid=None):
+    uuid_text = f"<p><b>ID de reserva:</b> {booking_uuid}</p>" if booking_uuid else ""
     message = Mail(
         from_email=FROM_EMAIL,
         to_emails=to_email,
@@ -42,16 +43,18 @@ def send_booking_email(to_email, name, service, date, time):
             <li><b>Fecha:</b> {date}</li>
             <li><b>Hora:</b> {time}</li>
         </ul>
+        {uuid_text}
         """
     )
     sg = SendGridAPIClient(SENDGRID_API_KEY)
     sg.send(message)
 
 
-def send_booking_sms(phone, name, service, date, time):
+def send_booking_sms(phone, name, service, date, time, booking_uuid=None):
+    uuid_text = f" ID de reserva: {booking_uuid}" if booking_uuid else ""
     client = Client(TWILIO_SID, TWILIO_TOKEN)
     client.messages.create(
-        body=f"Hola {name}! Tu reserva para {service} es el {date} a las {time}. ✂️",
+        body=f"Hola {name}! Tu reserva para {service} es el {date} a las {time}.{uuid_text} ✂️",
         from_=TWILIO_PHONE,
         to=phone
     )

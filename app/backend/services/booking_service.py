@@ -1,8 +1,8 @@
+from datetime import datetime, timedelta
 from app.backend.booking.models import BookingRequest
-from app.backend.booking.repository import save_booking
+from app.backend.booking.repository import save_booking, get_booked_hours
 from app.backend.booking.scheduling import is_closed_day, parse_date, parse_time_flexible, get_nearby_free_slots, WORKING_HOURS
 from app.backend.booking.notifications import send_booking_notification
-
 
 def handle_booking(decision, background_tasks):
     booking_data = decision.get("booking", {})
@@ -77,7 +77,7 @@ def handle_booking(decision, background_tasks):
     booking = BookingRequest(**booking_data)
 
     try:
-        save_booking(booking)
+        booking_uuid = save_booking(booking)
     except Exception:
         return {"bot_message": "Esa hora ya está reservada, prueba con otra."}
 
@@ -87,20 +87,20 @@ def handle_booking(decision, background_tasks):
         booking.name,
         booking.service,
         str(booking.date),
-        booking.time
+        booking.time,
+        booking_uuid
     )
 
     return {
         "bot_message": (
             f"¡Perfecto! Tu cita para {booking.service} "
             f"el {booking.date} a las {booking.time} está reservada. "
+            f"Tu ID de reserva es {booking_uuid}. (No lo compartas con nadie!) "
             f"Te esperamos en Pepito de los Palotes 3."
-        )
+        ),
+        "booking_uuid": booking_uuid  # <-- opcional para frontend
     }
 
-
-from app.backend.booking.repository import get_booked_hours
-from app.backend.booking.scheduling import WORKING_HOURS, is_closed_day, parse_date
 
 
 def handle_availability(date_str: str | None):
@@ -135,7 +135,6 @@ def handle_availability(date_str: str | None):
     }
 
 
-from datetime import datetime, timedelta
 
 
 def handle_availability_overview(days_ahead: int = 7):

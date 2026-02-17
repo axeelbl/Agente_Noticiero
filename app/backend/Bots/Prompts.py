@@ -44,7 +44,7 @@ Devuelve SOLO un JSON válido, sin texto adicional.
 Formato:
 
 {
-  "action": "CHAT" | "RESERVAR" | "CHECK_AVAILABILITY",
+  "action": "CHAT" | "RESERVAR" | "CHECK_AVAILABILITY" | "MODIFY_BOOKING",
   "booking": {
     "name": string | null,
     "service": string | null,

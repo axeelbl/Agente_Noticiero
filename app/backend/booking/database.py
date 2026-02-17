@@ -12,16 +12,21 @@ def init_db():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS bookings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            service TEXT NOT NULL,
-            date TEXT NOT NULL,
-            time TEXT NOT NULL,
-            contact TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(date, time)
-        )
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        booking_uuid TEXT UNIQUE NOT NULL,
+        name TEXT NOT NULL,
+        service TEXT NOT NULL,
+        date TEXT NOT NULL,
+        time TEXT NOT NULL,
+        contact TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(date, time)
+    )
+    """)
+    
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_booking_uuid ON bookings(booking_uuid)
     """)
 
     conn.commit()
-    conn.close()
+    conn.close()    

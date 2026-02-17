@@ -22,7 +22,8 @@ def reserve(booking: BookingRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail="Día cerrado o pasado")
 
     try:
-        save_booking(booking)
+        # Guardar reserva y obtener UUID
+        booking_uuid = save_booking(booking)
     except Exception:
         raise HTTPException(status_code=409, detail="Hora no disponible")
 
@@ -33,7 +34,8 @@ def reserve(booking: BookingRequest, background_tasks: BackgroundTasks):
         booking.name,
         booking.service,
         str(booking.date),
-        booking.time
+        booking.time,
+        booking_uuid 
     )
 
-    return {"status": "ok"}
+    return {"status": "ok", "booking_uuid": booking_uuid}

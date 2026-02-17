@@ -7,4 +7,5 @@ app = create_app()
 # Cambiar reserva?
 # Anular reserva?
 
+# Cambiar mensaje reservas de manual y de chat.
 # Añadir ver Fotos de cortes

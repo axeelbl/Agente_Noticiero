@@ -1,8 +1,5 @@
-import time
 from app.backend.Bots.chat import ask_groq
 from app.backend.Bots.Prompts import SYSTEM_PROMPT
-from app.backend.csv_utils import save_lead
-from app.backend.email_utils import send_csv_email
 
 def handle_chat(user_message, request):
     messages = [
