@@ -92,3 +92,23 @@ def update_booking(booking_uuid: str, new_date: str, new_time: str):
 
     conn.commit()
     conn.close()
+
+
+# ------------------------------
+# Anular reserva por UUID
+# ------------------------------
+def delete_booking(booking_uuid: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM bookings WHERE booking_uuid = ?",
+        (booking_uuid,)
+    )
+
+    if cursor.rowcount == 0:
+        conn.close()
+        raise Exception("No se encontró ninguna reserva con ese ID")
+
+    conn.commit()
+    conn.close()

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from app.backend.booking.models import BookingRequest
-from app.backend.booking.repository import save_booking, get_booked_hours, update_booking, get_booking_by_uuid
+from app.backend.booking.repository import save_booking, get_booked_hours, update_booking, get_booking_by_uuid, delete_booking
 from app.backend.booking.scheduling import is_closed_day, parse_date, parse_time_flexible, get_nearby_free_slots, WORKING_HOURS
 from app.backend.booking.notifications import send_booking_notification
 
@@ -235,5 +235,43 @@ def handle_modify_booking(decision, background_tasks):
             f"Perfecto, tu cita ha sido modificada: "
             f"{booking[3]} el {new_date} a las {new_time}. "
             f"ID de reserva: {booking_uuid}"
+        )
+    }
+
+
+def handle_cancel_booking(decision, background_tasks):
+    booking_data = decision.get("booking", {})
+    booking_uuid = booking_data.get("booking_uuid")
+
+    if not booking_uuid:
+        return {"bot_message": "Necesito tu ID de reserva para cancelar la cita."}
+
+    # Obtener la reserva
+    booking = get_booking_by_uuid(booking_uuid)
+    if not booking:
+        return {"bot_message": f"No encontré ninguna reserva con ID {booking_uuid}."}
+
+    # Borrar reserva
+    try:
+        delete_booking(booking_uuid)
+    except Exception as e:
+        return {"bot_message": "Error cancelando la reserva: " + str(e)}
+
+    # Opcional: notificar al usuario que se canceló
+    # background_tasks.add_task(
+    #     send_booking_notification,
+    #     booking[6],  # contact
+    #     booking[2],  # name
+    #     booking[3],  # service
+    #     booking[4],  # date
+    #     booking[5],  # time
+    #     booking_uuid,
+    #     cancelled=True  # Podrías usar un flag en send_booking_notification
+    # )
+
+    return {
+        "bot_message": (
+            f"Tu cita para {booking[3]} el {booking[4]} a las {booking[5]} "
+            f"ha sido cancelada correctamente. ID de reserva: {booking_uuid}"
         )
     }

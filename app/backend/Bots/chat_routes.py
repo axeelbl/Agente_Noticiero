@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, BackgroundTasks
 from pydantic import BaseModel
 
 from app.backend.Bots.chat import decide_and_extract_booking
-from app.backend.services.booking_service import handle_booking, handle_availability, handle_availability_overview, handle_modify_booking
+from app.backend.services.booking_service import handle_booking, handle_availability, handle_availability_overview, handle_modify_booking, handle_cancel_booking
 from app.backend.services.chat_service import handle_chat
 from app.backend.csv_utils import save_lead
 from app.backend.email_utils import send_csv_email
@@ -57,6 +57,12 @@ async def chat_endpoint(
     # MODIFICAR RESERVA
     if decision.get("action") == "MODIFY_BOOKING":
         response = handle_modify_booking(decision, background_tasks)
+        record_lead(response["bot_message"])
+        return response
+
+    # CANCELAR RESERVA
+    if decision.get("action") == "CANCEL_BOOKING":
+        response = handle_cancel_booking(decision, background_tasks)
         record_lead(response["bot_message"])
         return response
 
