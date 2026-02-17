@@ -93,12 +93,16 @@ def handle_booking(decision, background_tasks):
 
     return {
         "bot_message": (
-            f"¡Perfecto! Tu cita para {booking.service} "
-            f"el {booking.date} a las {booking.time} está reservada. "
-            f"Tu ID de reserva es {booking_uuid}. (No lo compartas con nadie!) "
-            f"Te esperamos en Pepito de los Palotes 3."
+            f"✅ **Reserva confirmada** ✂️\n\n"
+            f"👤 Cliente: {booking.name}\n"
+            f"✂️ Servicio: {booking.service}\n"
+            f"📅 Fecha: {booking.date}\n"
+            f"⏰ Hora: {booking.time}\n\n"
+            f"📩 Confirmación enviada a:\n{booking.contact}\n"
+            f"{f'🆔 ID de reserva: {booking_uuid}' if booking_uuid else ''}\n\n"
+            "📍Te esperamos en Calle Lorem Ipsum!"
         ),
-        "booking_uuid": booking_uuid  # <-- opcional para frontend
+        "booking_uuid": booking_uuid 
     }
 
 

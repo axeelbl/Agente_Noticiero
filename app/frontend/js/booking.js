@@ -101,18 +101,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
             alert("✅ Cita reservada correctamente");
 
-            const { name, service, date, time, contact } = data;
+            const { name, service, date, time, contact, booking_uuid } = data;
 
             if (window.chatUI) {
-                window.chatUI.addBotMessageTyping(
-                    "✅ **Reserva confirmada** ✂️\n\n" +
-                    `👤 Cliente: ${name}\n` +
-                    `✂️ Servicio: ${service}\n` +
-                    `📅 Fecha: ${date}\n` +
-                    `⏰ Hora: ${time}\n\n` +
-                    `📩 Confirmación enviada a:\n${contact}\n\n` +
-                    "¿Quieres cambiar algo o reservar otra cita?"
-                );
+                const message = 
+                    `✅ **Reserva confirmada** ✂️
+
+                    👤 Cliente: ${name}
+                    ✂️ Servicio: ${service}
+                    📅 Fecha: ${date}
+                    ⏰ Hora: ${time}
+
+                    📩 Confirmación enviada a:
+                    ${contact}
+                    ${booking_uuid ? `🆔 ID de reserva: ${booking_uuid}` : ''}
+
+                    📍Te esperamos en Calle Lorem Ipsum!`;
+
+                window.chatUI.addBotMessageTyping(message);
             }
 
             modal.classList.add("hidden");

@@ -54,6 +54,7 @@ def send_booking_email(to_email, name, service, date, time, booking_uuid=None, c
             <li><b>Fecha:</b> {date}</li>
             <li><b>Hora:</b> {time}</li>
         </ul>
+        <p>📍Te esperamos en <b>Calle Lorem Ipsum</b>!</p>
         {uuid_text}
         """
 
