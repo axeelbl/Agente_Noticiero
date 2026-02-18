@@ -42,6 +42,14 @@
                 </svg>
                 <span>Pedir cita</span>
             </a>
+
+            <a href="#" id="manageBtn" aria-label="Gestionar cita">
+                <!-- Icono de engranaje -->
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.6-.22l-2.49 1a7.03 7.03 0 0 0-1.7-.98l-.38-2.65A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.42l-.38 2.65c-.63.23-1.23.54-1.7.98l-2.49-1a.5.5 0 0 0-.6.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.14.24.42.33.66.22l2.49-1c.47.44 1.07.75 1.7.98l.38 2.65c.04.25.25.42.5.42h4c.25 0 .46-.17.5-.42l.38-2.65c.63-.23 1.23-.54 1.7-.98l2.49 1c.24.11.52.02.66-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65zM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5z"/>
+                </svg>
+                <span>Gestion cita</span>
+            </a>
         </div>
 
 
@@ -81,6 +89,30 @@
                 <div class="modal-actions">
                     <button type="submit">Confirmar cita</button>
                     <button type="button" id="closeModal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="manageBookingModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>⚙️ Gestionar cita</h2>
+
+            <form id="manageBookingForm">
+                <input type="text" name="booking_uuid" placeholder="ID de reserva" required>
+                
+                <label>Nueva fecha:</label>
+                <input type="date" name="new_date">
+
+                <label>Nueva hora:</label>
+                <select name="new_time" id="manageTimeSelect">
+                    <option value="">Selecciona una hora</option>
+                </select>
+
+                <div class="modal-actions">
+                    <button type="submit" id="modifyBtn">Modificar cita</button>
+                    <button type="button" id="cancelBtn">Cancelar cita</button>
+                    <button type="button" id="closeManageModal">Cerrar</button>
                 </div>
             </form>
         </div>
