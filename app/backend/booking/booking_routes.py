@@ -54,6 +54,15 @@ def modify_booking(decision: dict, background_tasks: BackgroundTasks):
 
     if not booking_uuid or not new_date or not new_time:
         raise HTTPException(status_code=400, detail="Faltan datos para modificar la reserva")
+    
+    if new_time not in WORKING_HOURS:
+        raise HTTPException(400,"Hora inválida")
+
+    if is_closed_day(new_date):
+        raise HTTPException(400,"Fecha inválida")
+    
+    if new_time in get_booked_hours(new_date):
+        raise HTTPException(409,"Hora ya reservada")
 
     booking = get_booking_by_uuid(booking_uuid)
     if not booking:
