@@ -1,18 +1,18 @@
 # RUTAS DE LA API PARA PODER GESTIONAR LAS RESERVAS DE MANERA MANUAL
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Request
 from .models import BookingRequest
 from .repository import get_booked_hours, save_booking, update_booking, delete_booking, get_booking_by_uuid
 from .scheduling import WORKING_HOURS, is_closed_day
 from .notifications import send_booking_notification
-
+from app.backend.core.security import limiter
 
 
 router = APIRouter(prefix="/booking", tags=["booking"])
 
-
 @router.get("/availability")
-def availability(date: str):
+@limiter.limit("60/minute")
+def availability(request: Request, date: str):
     if is_closed_day(date):
         return []  # Cierra ese día o ya pasó
 
@@ -21,7 +21,8 @@ def availability(date: str):
 
 
 @router.post("/reserve")
-def reserve(booking: BookingRequest, background_tasks: BackgroundTasks):
+@limiter.limit("20/minute")
+def reserve(request: Request, booking: BookingRequest, background_tasks: BackgroundTasks):
     if is_closed_day(str(booking.date)):
         raise HTTPException(status_code=400, detail="Día cerrado o pasado")
 
@@ -45,8 +46,10 @@ def reserve(booking: BookingRequest, background_tasks: BackgroundTasks):
     return {"status": "ok", "booking_uuid": booking_uuid}
 
 
+
 @router.post("/modify")
-def modify_booking(decision: dict, background_tasks: BackgroundTasks):
+@limiter.limit("10/minute")
+def modify_booking(request: Request, decision: dict, background_tasks: BackgroundTasks):
     
     booking_uuid = decision.get("booking_uuid")
     new_date = decision.get("new_date")
@@ -88,7 +91,8 @@ def modify_booking(decision: dict, background_tasks: BackgroundTasks):
 
 
 @router.post("/cancel")
-def cancel_booking(decision: dict, background_tasks: BackgroundTasks):
+@limiter.limit("5/minute")
+def cancel_booking(request: Request, decision: dict, background_tasks: BackgroundTasks):
     
     booking_uuid = decision.get("booking_uuid")
     if not booking_uuid:

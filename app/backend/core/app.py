@@ -1,18 +1,22 @@
 import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from app.backend.core.cors import setup_cors
 from app.backend.core.startup import init_services
 from app.backend.Bots.chat_routes import router as chat_router
 from app.backend.booking.booking_routes import router as booking_router
 
+from app.backend.core.security import setup_security
+
 # Base del proyecto (carpeta "app")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 def create_app() -> FastAPI:
     app = FastAPI(title="AxelBot API", version="1.0")
+    
+    setup_security(app)
 
     # Init DB y servicios
     init_services()
@@ -40,3 +44,5 @@ def create_app() -> FastAPI:
         return {"error": "Archivo index.html no encontrado."}
 
     return app
+
+
