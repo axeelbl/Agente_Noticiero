@@ -6,6 +6,7 @@ from .repository import get_booked_hours, save_booking, update_booking, delete_b
 from .scheduling import WORKING_HOURS, is_closed_day
 from .notifications import send_booking_notification
 from app.backend.core.security import limiter
+import html
 
 
 router = APIRouter(prefix="/booking", tags=["booking"])
@@ -26,24 +27,38 @@ def reserve(request: Request, booking: BookingRequest, background_tasks: Backgro
     if is_closed_day(str(booking.date)):
         raise HTTPException(status_code=400, detail="Día cerrado o pasado")
 
+    # Escapar campos
+    safe_name = html.escape(booking.name)
+    safe_service = html.escape(booking.service)
+    safe_contact = html.escape(booking.contact)
+    safe_date = html.escape(str(booking.date))
+    safe_time = html.escape(booking.time)
+
     try:
-        # Guardar reserva y obtener UUID
-        booking_uuid = save_booking(booking)
+        # Guardar reserva usando los datos sanitizados
+        booking_uuid = save_booking(BookingRequest(
+            name=safe_name,
+            service=safe_service,
+            date=safe_date,
+            time=safe_time,
+            contact=safe_contact
+        ))
     except Exception:
         raise HTTPException(status_code=409, detail="Hora no disponible")
 
-    # <-- Enviar email en segundo plano -->
+    # Notificación al usuario
     background_tasks.add_task(
         send_booking_notification,
-        booking.contact,  
-        booking.name,
-        booking.service,
-        str(booking.date),
-        booking.time,
+        safe_contact,
+        safe_name,
+        safe_service,
+        safe_date,
+        safe_time,
         booking_uuid 
     )
 
     return {"status": "ok", "booking_uuid": booking_uuid}
+
 
 
 
@@ -70,6 +85,20 @@ def modify_booking(request: Request, decision: dict, background_tasks: Backgroun
     booking = get_booking_by_uuid(booking_uuid)
     if not booking:
         raise HTTPException(status_code=404, detail="Reserva no encontrada")
+    
+    # Escapar datos antes de enviarlos
+    safe_name = html.escape(booking[2])
+    safe_service = html.escape(booking[3])
+    safe_contact = html.escape(booking[6])
+    safe_new_date = html.escape(new_date)
+    safe_new_time = html.escape(new_time)
+
+    # Escapar datos antes de enviarlos
+    safe_name = html.escape(booking[2])
+    safe_service = html.escape(booking[3])
+    safe_contact = html.escape(booking[6])
+    safe_new_date = html.escape(new_date)
+    safe_new_time = html.escape(new_time)
 
     try:
         update_booking(booking_uuid, new_date, new_time)
@@ -79,11 +108,11 @@ def modify_booking(request: Request, decision: dict, background_tasks: Backgroun
     # Notificación al usuario
     background_tasks.add_task(
         send_booking_notification,
-        booking[6],  # contact
-        booking[2],  # name
-        booking[3],  # service
-        new_date,
-        new_time,
+        safe_contact,
+        safe_name,
+        safe_service,
+        safe_new_date,
+        safe_new_time,
         booking_uuid,
     )
 
@@ -102,6 +131,12 @@ def cancel_booking(request: Request, decision: dict, background_tasks: Backgroun
     if not booking:
         raise HTTPException(status_code=404, detail="Reserva no encontrada")
 
+    safe_name = html.escape(booking[2])
+    safe_service = html.escape(booking[3])
+    safe_contact = html.escape(booking[6])
+    safe_date = html.escape(str(booking[4]))
+    safe_time = html.escape(booking[5])
+
     try:
         delete_booking(booking_uuid)
     except Exception as e:
@@ -110,11 +145,11 @@ def cancel_booking(request: Request, decision: dict, background_tasks: Backgroun
     # Notificación al usuario
     background_tasks.add_task(
         send_booking_notification,
-        booking[6],  # contact
-        booking[2],  # name
-        booking[3],  # service
-        str(booking[4]),
-        booking[5],
+        safe_contact,
+        safe_name,
+        safe_service,
+        safe_date,
+        safe_time,
         booking_uuid,
         cancelled=True
     )

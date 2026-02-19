@@ -119,11 +119,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     const { name, service, date, time, contact, booking_uuid } = data;
                     const message = 
                         `✅ **Reserva confirmada** ✂️
-                        👤 Cliente: ${name}
-                        ✂️ Servicio: ${service}
-                        📅 Fecha: ${date}
-                        ⏰ Hora: ${time}
-                        📩 Confirmación enviada a: ${contact}
+                        👤 Cliente: ${escapeHtml(name)}
+                        ✂️ Servicio: ${escapeHtml(service)}
+                        📅 Fecha: ${escapeHtml(date)}
+                        ⏰ Hora: ${escapeHtml(time)}
+                        📩 Confirmación enviada a: ${escapeHtml(contact)}
                         ${booking_uuid ? `🆔 ID de reserva: ${booking_uuid}` : ''}
                         📍Te esperamos en Calle Lorem Ipsum!`;
                     window.chatUI.addBotMessageTyping(message);
@@ -252,5 +252,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("❌ Error al cancelar la reserva");
             }
         });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 });
