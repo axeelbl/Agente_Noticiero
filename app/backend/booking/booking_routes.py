@@ -3,9 +3,10 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Request
 from .models import BookingRequest
 from .repository import get_booked_hours, save_booking, update_booking, delete_booking, get_booking_by_uuid
-from .scheduling import WORKING_HOURS, is_closed_day
+from .scheduling import WORKING_HOURS, is_closed_day, parse_date
 from .notifications import send_booking_notification
-from app.backend.core.security import limiter
+from app.backend.core.security import limiter, validate_contact,validate_text_field
+
 import html
 
 
@@ -24,15 +25,23 @@ def availability(request: Request, date: str):
 @router.post("/reserve")
 @limiter.limit("20/minute")
 def reserve(request: Request, booking: BookingRequest, background_tasks: BackgroundTasks):
-    if is_closed_day(str(booking.date)):
-        raise HTTPException(status_code=400, detail="Día cerrado o pasado")
+    try:
+        # Validar y sanitizar campos de texto
+        safe_name = validate_text_field(booking.name, "Nombre")
+        safe_service = validate_text_field(booking.service, "Servicio")
+        safe_contact = validate_contact(booking.contact)
 
-    # Escapar campos
-    safe_name = html.escape(booking.name)
-    safe_service = html.escape(booking.service)
-    safe_contact = html.escape(booking.contact)
-    safe_date = html.escape(str(booking.date))
-    safe_time = html.escape(booking.time)
+        # Validar fecha
+        safe_date = parse_date(str(booking.date))
+        if is_closed_day(safe_date):
+            raise ValueError("Día cerrado o pasado")
+
+        # Validar hora
+        safe_time = booking.time
+        if safe_time not in WORKING_HOURS:
+            raise ValueError("Hora inválida")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     try:
         # Guardar reserva usando los datos sanitizados
@@ -65,43 +74,42 @@ def reserve(request: Request, booking: BookingRequest, background_tasks: Backgro
 @router.post("/modify")
 @limiter.limit("10/minute")
 def modify_booking(request: Request, decision: dict, background_tasks: BackgroundTasks):
-    
     booking_uuid = decision.get("booking_uuid")
     new_date = decision.get("new_date")
     new_time = decision.get("new_time")
 
     if not booking_uuid or not new_date or not new_time:
         raise HTTPException(status_code=400, detail="Faltan datos para modificar la reserva")
-    
-    if new_time not in WORKING_HOURS:
-        raise HTTPException(400,"Hora inválida")
 
-    if is_closed_day(new_date):
-        raise HTTPException(400,"Fecha inválida")
-    
-    if new_time in get_booked_hours(new_date):
-        raise HTTPException(409,"Hora ya reservada")
+    try:
+        # Validar y normalizar fecha
+        safe_new_date = parse_date(str(new_date))
+        if is_closed_day(safe_new_date):
+            raise ValueError("Fecha inválida")
 
+        # Validar hora
+        if new_time not in WORKING_HOURS:
+            raise ValueError("Hora inválida")
+
+        # Revisar que la hora no esté ocupada
+        if new_time in get_booked_hours(safe_new_date):
+            raise ValueError("Hora ya reservada")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Obtener la reserva original
     booking = get_booking_by_uuid(booking_uuid)
     if not booking:
         raise HTTPException(status_code=404, detail="Reserva no encontrada")
-    
-    # Escapar datos antes de enviarlos
-    safe_name = html.escape(booking[2])
-    safe_service = html.escape(booking[3])
-    safe_contact = html.escape(booking[6])
-    safe_new_date = html.escape(new_date)
-    safe_new_time = html.escape(new_time)
 
-    # Escapar datos antes de enviarlos
-    safe_name = html.escape(booking[2])
-    safe_service = html.escape(booking[3])
-    safe_contact = html.escape(booking[6])
-    safe_new_date = html.escape(new_date)
+    # Escapar datos antes de usarlos
+    safe_name = validate_text_field(booking[2], "Nombre")
+    safe_service = validate_text_field(booking[3], "Servicio")
+    safe_contact = validate_contact(booking[6])
     safe_new_time = html.escape(new_time)
 
     try:
-        update_booking(booking_uuid, new_date, new_time)
+        update_booking(booking_uuid, safe_new_date, new_time)
     except Exception as e:
         raise HTTPException(status_code=409, detail=str(e))
 
@@ -122,7 +130,6 @@ def modify_booking(request: Request, decision: dict, background_tasks: Backgroun
 @router.post("/cancel")
 @limiter.limit("5/minute")
 def cancel_booking(request: Request, decision: dict, background_tasks: BackgroundTasks):
-    
     booking_uuid = decision.get("booking_uuid")
     if not booking_uuid:
         raise HTTPException(status_code=400, detail="Falta el booking_uuid")
@@ -131,9 +138,10 @@ def cancel_booking(request: Request, decision: dict, background_tasks: Backgroun
     if not booking:
         raise HTTPException(status_code=404, detail="Reserva no encontrada")
 
-    safe_name = html.escape(booking[2])
-    safe_service = html.escape(booking[3])
-    safe_contact = html.escape(booking[6])
+    # Escapar datos antes de usarlos
+    safe_name = validate_text_field(booking[2], "Nombre")
+    safe_service = validate_text_field(booking[3], "Servicio")
+    safe_contact = validate_contact(booking[6])
     safe_date = html.escape(str(booking[4]))
     safe_time = html.escape(booking[5])
 
