@@ -73,6 +73,41 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.classList.add("hidden");
     }
 
+    // ================================
+    // ESCAPAR HTML
+    // ================================
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // ================================
+    // MENSAJES EN EL CHAT (BOT)
+    // ================================
+    function addBotMessageSafe(text) {
+        const container = document.getElementById("chatContainer");
+        const div = document.createElement("div");
+        div.className = "bot-message";
+
+        // Convertimos saltos de línea en <br> de forma segura
+        text.split("\n").forEach((line, idx) => {
+            const span = document.createElement("span");
+            span.textContent = line; // ✅ Seguro contra XSS
+            div.appendChild(span);
+            if (idx < text.split("\n").length - 1) {
+                div.appendChild(document.createElement("br"));
+            }
+        });
+
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
     /** ================================
      *  RESERVA NUEVA
      * ================================ */
@@ -81,11 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
         reserveBtn.addEventListener("click", (e) => {
             e.preventDefault();
             openModal(bookingModal);
-
-            // Reset select
             timeSelect.innerHTML = "<option>Selecciona una hora</option>";
             timeSelect.value = "";
-
             if (dateInput.value) loadAvailableHours(dateInput.value, timeSelect);
         });
 
@@ -114,19 +146,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 alert("✅ Cita reservada correctamente");
 
-                // Mensaje en chat si existe
                 if (window.chatUI) {
                     const { name, service, date, time, contact, booking_uuid } = data;
-                    const message = 
-                        `✅ **Reserva confirmada** ✂️
-                        👤 Cliente: ${escapeHtml(name)}
-                        ✂️ Servicio: ${escapeHtml(service)}
-                        📅 Fecha: ${escapeHtml(date)}
-                        ⏰ Hora: ${escapeHtml(time)}
-                        📩 Confirmación enviada a: ${escapeHtml(contact)}
-                        ${booking_uuid ? `🆔 ID de reserva: ${booking_uuid}` : ''}
-                        📍Te esperamos en Calle Lorem Ipsum!`;
-                    window.chatUI.addBotMessageTyping(message);
+                    const message =
+                    `✅ Reserva confirmada ✂️
+
+
+                    👤 Cliente: ${escapeHtml(name)}
+                    ✂️ Servicio: ${escapeHtml(service)}
+                    📅 Fecha: ${escapeHtml(date)}
+                    ⏰ Hora: ${escapeHtml(time)}
+                    📩 Confirmación enviada a: ${escapeHtml(contact)}
+                    ${booking_uuid ? `🆔 ID de reserva: ${escapeHtml(booking_uuid)}` : ''}
+
+                    📍Te esperamos en Calle Lorem Ipsum!`;
+
+                    sendBotMessageSafe(message);
                 }
 
                 closeModal(bookingModal);
@@ -192,16 +227,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!res.ok) throw new Error();
 
                 alert("✅ Reserva modificada correctamente");
-                // Mensaje en chat si existe
+
                 if (window.chatUI) {
-                    const message = `🔁 **Reserva Modificada**
+                    const message = 
+                    `🔁 Reserva Modificada 
 
-                        🆔 ID: ${data.booking_uuid}
-                        📅 Nueva fecha: ${data.new_date}
-                        ⏰ Nueva hora: ${data.new_time}
 
-                        📍Te esperamos en Calle Lorem Ipsum!`;
-                    window.chatUI.addBotMessageTyping(message);
+                    🆔 ID: ${escapeHtml(data.booking_uuid)}
+                    📅 Nueva fecha: ${escapeHtml(data.new_date)}
+                    ⏰ Nueva hora: ${escapeHtml(data.new_time)}
+
+                    📍Te esperamos en Calle Lorem Ipsum!`;
+                    sendBotMessageSafe(message);
                 }
                 closeModal(manageModal);
                 manageForm.reset();
@@ -236,14 +273,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!res.ok) throw new Error();
 
                 alert("✅ Reserva cancelada correctamente");
-                // Mensaje en chat si existe
+
                 if (window.chatUI) {
-                    const message = `❌ **Reserva Cancelada**
+                    const message = 
+                    `❌ Reserva Cancelada
 
-                        🆔 ID: ${booking_uuid}
 
-                        Tu cita ha sido cancelada correctamente.`;
-                    window.chatUI.addBotMessageTyping(message);
+                    🆔 ID: ${escapeHtml(booking_uuid)}
+                    Tu cita ha sido cancelada correctamente.`;
+
+                    sendBotMessageSafe(message);
                 }
                 closeModal(manageModal);
                 manageForm.reset();
@@ -254,13 +293,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function escapeHtml(str) {
-        if (!str) return "";
-        return str
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+
+    // ================================
+    // FUNCIÓN SEGURA PARA ENVIAR MENSAJES AL BOT
+    // ================================
+    function sendBotMessageSafe(message) {
+        if (!window.chatUI || !window.chatUI.addBotMessageTyping) return;
+
+        // Convertimos saltos de línea en "\n" (el método de chatUI los mostrará correctamente)
+        const safeMessage = message.split("\n").map(line => escapeHtml(line)).join("\n");
+
+        window.chatUI.addBotMessageTyping(safeMessage);
     }
 });
