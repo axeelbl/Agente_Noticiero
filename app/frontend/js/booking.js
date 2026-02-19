@@ -203,11 +203,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = {
                 booking_uuid: manageForm.booking_uuid.value,
+                contact: manageForm.contact.value,
                 new_date: manageForm.new_date.value,
                 new_time: manageForm.new_time.value
             };
 
-            if (!data.booking_uuid || !data.new_date || !data.new_time) {
+            if (!data.booking_uuid || !data.contact ||!data.new_date || !data.new_time) {
                 alert("❌ Completa todos los campos para modificar");
                 return;
             }
@@ -251,6 +252,13 @@ document.addEventListener("DOMContentLoaded", () => {
         // CANCELAR reserva
         cancelBtn.addEventListener("click", async () => {
             const booking_uuid = manageForm.booking_uuid.value;
+            const contact = manageForm.contact.value;
+
+            if (!contact) {
+                alert("❌ Ingresa el contacto de la reserva para cancelar");
+                return;
+            }
+
             if (!booking_uuid) {
                 alert("❌ Ingresa el ID de reserva para cancelar");
                 return;
@@ -262,7 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const res = await fetch("/booking/cancel", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ booking_uuid })
+                    body: JSON.stringify({ booking_uuid, contact })
                 });
                 
                 if (res.status === 404) {

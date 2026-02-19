@@ -75,37 +75,31 @@ def reserve(request: Request, booking: BookingRequest, background_tasks: Backgro
 @limiter.limit("10/minute")
 def modify_booking(request: Request, decision: dict, background_tasks: BackgroundTasks):
     booking_uuid = decision.get("booking_uuid")
+    contact = decision.get("contact")
     new_date = decision.get("new_date")
     new_time = decision.get("new_time")
 
-    if not booking_uuid or not new_date or not new_time:
+    if not booking_uuid or not contact or not new_date or not new_time:
         raise HTTPException(status_code=400, detail="Faltan datos para modificar la reserva")
 
     try:
-        # Validar y normalizar fecha
+        safe_contact = validate_contact(contact)
         safe_new_date = parse_date(str(new_date))
         if is_closed_day(safe_new_date):
             raise ValueError("Fecha inválida")
-
-        # Validar hora
         if new_time not in WORKING_HOURS:
             raise ValueError("Hora inválida")
-
-        # Revisar que la hora no esté ocupada
         if new_time in get_booked_hours(safe_new_date):
             raise ValueError("Hora ya reservada")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Obtener la reserva original
     booking = get_booking_by_uuid(booking_uuid)
-    if not booking:
-        raise HTTPException(status_code=404, detail="Reserva no encontrada")
+    if not booking or booking[6] != safe_contact:  # booking[6] es el contacto
+        raise HTTPException(status_code=404, detail="Reserva no encontrada o contacto incorrecto")
 
-    # Escapar datos antes de usarlos
     safe_name = validate_text_field(booking[2], "Nombre")
     safe_service = validate_text_field(booking[3], "Servicio")
-    safe_contact = validate_contact(booking[6])
     safe_new_time = html.escape(new_time)
 
     try:
@@ -113,7 +107,6 @@ def modify_booking(request: Request, decision: dict, background_tasks: Backgroun
     except Exception as e:
         raise HTTPException(status_code=409, detail=str(e))
 
-    # Notificación al usuario
     background_tasks.add_task(
         send_booking_notification,
         safe_contact,
@@ -131,17 +124,18 @@ def modify_booking(request: Request, decision: dict, background_tasks: Backgroun
 @limiter.limit("5/minute")
 def cancel_booking(request: Request, decision: dict, background_tasks: BackgroundTasks):
     booking_uuid = decision.get("booking_uuid")
-    if not booking_uuid:
-        raise HTTPException(status_code=400, detail="Falta el booking_uuid")
+    contact = decision.get("contact")
+    
+    if not booking_uuid or not contact:
+        raise HTTPException(status_code=400, detail="Faltan datos para cancelar la reserva")
 
+    safe_contact = validate_contact(contact)
     booking = get_booking_by_uuid(booking_uuid)
-    if not booking:
-        raise HTTPException(status_code=404, detail="Reserva no encontrada")
+    if not booking or booking[6] != safe_contact:
+        raise HTTPException(status_code=404, detail="Reserva no encontrada o contacto incorrecto")
 
-    # Escapar datos antes de usarlos
     safe_name = validate_text_field(booking[2], "Nombre")
     safe_service = validate_text_field(booking[3], "Servicio")
-    safe_contact = validate_contact(booking[6])
     safe_date = html.escape(str(booking[4]))
     safe_time = html.escape(booking[5])
 
@@ -150,7 +144,6 @@ def cancel_booking(request: Request, decision: dict, background_tasks: Backgroun
     except Exception as e:
         raise HTTPException(status_code=409, detail=str(e))
 
-    # Notificación al usuario
     background_tasks.add_task(
         send_booking_notification,
         safe_contact,
