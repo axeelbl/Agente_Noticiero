@@ -177,18 +177,25 @@ def handle_modify_booking(decision, background_tasks):
     booking_uuid = booking_data.get("booking_uuid")
     new_date = booking_data.get("date")
     new_time = booking_data.get("time")
+    contact = booking_data.get("contact")
 
     if not booking_uuid:
         return {"bot_message": "Necesito tu ID de reserva para modificarla."}
 
+    if not contact:
+        return {"bot_message": "Necesito tu contacto de la reserva para modificarla."}
+
     if not new_date and not new_time:
         return {"bot_message": "Indica al menos un nuevo día o una nueva hora para la cita."}
+    
+    
 
     # Obtener la reserva existente
     booking = get_booking_by_uuid(booking_uuid)
-    if not booking:
-        return {"bot_message": f"No encontré ninguna reserva con ID {booking_uuid}."}
-
+    if not booking or contact != booking[6]:
+        return {"bot_message": f"No encontré ninguna reserva con ID {booking_uuid} y con contacto {contact}."}
+    
+    
     # Si no envían alguno de los datos, mantenemos el existente
     if not new_date:
         new_date = booking[4]  # columna date
@@ -246,14 +253,18 @@ def handle_modify_booking(decision, background_tasks):
 def handle_cancel_booking(decision, background_tasks):
     booking_data = decision.get("booking", {})
     booking_uuid = booking_data.get("booking_uuid")
+    contact = booking_data.get("contact")
 
     if not booking_uuid:
         return {"bot_message": "Necesito tu ID de reserva para cancelar la cita."}
+    
+    if not contact:
+        return {"bot_message": "Necesito tu contacto de la reserva para modificarla."}
 
     # Obtener la reserva
     booking = get_booking_by_uuid(booking_uuid)
-    if not booking:
-        return {"bot_message": f"No encontré ninguna reserva con ID {booking_uuid}."}
+    if not booking or contact != booking[6]:
+        return {"bot_message": f"No encontré ninguna reserva con ID {booking_uuid} y con contacto {contact}."}
 
     # Borrar reserva
     try:
