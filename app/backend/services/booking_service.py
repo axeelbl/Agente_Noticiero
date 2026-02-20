@@ -4,6 +4,12 @@ from app.backend.booking.repository import save_booking, get_booked_hours, updat
 from app.backend.booking.scheduling import is_closed_day, parse_date, parse_time_flexible, get_nearby_free_slots, WORKING_HOURS
 from app.backend.booking.notifications import send_booking_notification
 
+import hmac
+from app.backend.core.security import validate_text_field, validate_contact
+
+VALID_SERVICES = ["Corte", "Barba", "Corte + Barba"]
+
+
 def handle_booking(decision, background_tasks):
     booking_data = decision.get("booking", {})
 
@@ -34,8 +40,10 @@ def handle_booking(decision, background_tasks):
 
         return {"bot_message": msg}
 
-    if booking_data.get("date"):
+    try:
         booking_data["date"] = parse_date(booking_data["date"])
+    except Exception:
+        return {"bot_message": "No he entendido la fecha. Escríbela en formato día/mes/año."}
 
     if is_closed_day(booking_data["date"]):
         return {
@@ -68,12 +76,22 @@ def handle_booking(decision, background_tasks):
             )
         }
 
-
     if booking_data["time"] not in WORKING_HOURS:
         return {
             "bot_message": f"La hora {booking_data['time']} no está disponible. Intenta otra hora."
         }
 
+    
+    try:
+        booking_data["name"] = validate_text_field(booking_data["name"], "Nombre")
+        booking_data["service"] = validate_text_field(booking_data["service"], "Servicio")
+        booking_data["contact"] = validate_contact(booking_data["contact"])
+    except ValueError as e:
+        return {"bot_message": str(e)}
+
+    if booking_data["service"] not in VALID_SERVICES:
+        return {"bot_message": "Servicio no válido."}
+    
     booking = BookingRequest(**booking_data)
 
     try:
@@ -179,6 +197,11 @@ def handle_modify_booking(decision, background_tasks):
     new_time = booking_data.get("time")
     contact = booking_data.get("contact")
 
+    try:
+        contact = validate_contact(contact)
+    except ValueError as e:
+        return {"bot_message": str(e)}
+
     if not booking_uuid:
         return {"bot_message": "Necesito tu ID de reserva para modificarla."}
 
@@ -192,7 +215,7 @@ def handle_modify_booking(decision, background_tasks):
 
     # Obtener la reserva existente
     booking = get_booking_by_uuid(booking_uuid)
-    if not booking or contact != booking[6]:
+    if not booking or not hmac.compare_digest(contact, booking[6]):
         return {"bot_message": f"No encontré ninguna reserva con ID {booking_uuid} y con contacto {contact}."}
     
     
@@ -215,10 +238,13 @@ def handle_modify_booking(decision, background_tasks):
             new_time = f"{minutes // 60:02d}:{minutes % 60:02d}"
         except ValueError:
             return {"bot_message": "No entendí la hora nueva. Intenta con algo como 16:30 o cuatro y media."}
-
+    
     # Validaciones
     if is_closed_day(new_date):
         return {"bot_message": "Ese día estamos cerrados o ya pasó, elige otro día."}
+    
+    if new_time not in WORKING_HOURS:
+        return {"bot_message": "Esa hora no está dentro del horario disponible."}
 
     booked = get_booked_hours(str(new_date))
     if new_time in booked:
@@ -255,6 +281,11 @@ def handle_cancel_booking(decision, background_tasks):
     booking_uuid = booking_data.get("booking_uuid")
     contact = booking_data.get("contact")
 
+    try:
+        contact = validate_contact(contact)
+    except ValueError as e:
+        return {"bot_message": str(e)}
+    
     if not booking_uuid:
         return {"bot_message": "Necesito tu ID de reserva para cancelar la cita."}
     
@@ -263,8 +294,8 @@ def handle_cancel_booking(decision, background_tasks):
 
     # Obtener la reserva
     booking = get_booking_by_uuid(booking_uuid)
-    if not booking or contact != booking[6]:
-        return {"bot_message": f"No encontré ninguna reserva con ID {booking_uuid} y con contacto {contact}."}
+    if not booking or not hmac.compare_digest(contact, booking[6]):
+        return {"bot_message": f"No encontré ninguna reserva esos datos"}
 
     # Borrar reserva
     try:

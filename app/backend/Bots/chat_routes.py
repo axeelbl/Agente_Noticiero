@@ -8,18 +8,23 @@ from app.backend.csv_utils import save_lead
 from app.backend.email_utils import send_csv_email
 import time
 
+from app.backend.core.security import limiter
+
 router = APIRouter()
 
 class MessageRequest(BaseModel):
     user_message: str
 
 @router.post("/chat")
+@limiter.limit("20/minute")
 async def chat_endpoint(
     msg: MessageRequest,
     request: Request,
     background_tasks: BackgroundTasks
 ):
     user_message = msg.user_message
+    if len(user_message) > 500:
+        return {"bot_message": "Mensaje demasiado largo."}
     decision = decide_and_extract_booking(user_message)
 
     # Función para guardar lead y enviar CSV
