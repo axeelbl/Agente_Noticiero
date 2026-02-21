@@ -42,6 +42,21 @@ export class ChatController {
             });
             const data = await res.json();
             await this.ui.addBotMessageTyping(data.bot_message);
+            // mostrar fotos si vienen
+            if (data.photos) {
+                const gallery = document.createElement("div");
+                gallery.className = "photo-gallery";
+
+                data.photos.forEach(src => {
+                    const img = document.createElement("img");
+                    img.src = src;
+                    img.className = "chat-photo";
+                    gallery.appendChild(img);
+                });
+
+                this.ui.chatContainer.appendChild(gallery);
+                this.ui.chatContainer.scrollTop = this.ui.chatContainer.scrollHeight;
+            }
         } catch (err) {
             await this.ui.addBotMessageTyping("❌ Error conectando con el servidor.");
             this.avatar.avatarStatus.textContent = "🔴 Error";

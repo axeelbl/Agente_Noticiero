@@ -46,7 +46,7 @@ Devuelve SOLO un JSON válido, sin texto adicional.
 Formato:
 
 {
-  "action": "CHAT" | "RESERVAR" | "CHECK_AVAILABILITY" | "MODIFY_BOOKING" | "CANCEL_BOOKING",
+  "action": "CHAT" | "RESERVAR" | "CHECK_AVAILABILITY" | "MODIFY_BOOKING" | "CANCEL_BOOKING" | "SHOW_PHOTOS"
   "booking": {
     "name": string | null,
     "service": string | null,
@@ -67,6 +67,7 @@ Reglas:
 - CHAT → cualquier otro mensaje.
 - MODIFY_BOOKING → si el usuario quiere cambiar una cita. Extrae booking_uuid, nuevo día y nueva hora si están disponibles.
 - CANCEL_BOOKING → si el usuario quiere cancelar una cita. Extrae booking_uuid.
+- SHOW_PHOTOS → si el usuario pide ver fotos, ejemplos:"enséñame fotos","quiero ver cortes","ver fotos"
 - Extrae SOLO datos explícitos.
 - Si no hay fecha en disponibilidad → availability_date = null.
 - Si el usuario pregunta disponibilidad general (ej: “qué días tienes”), usa CHECK_AVAILABILITY con availability_date = null.

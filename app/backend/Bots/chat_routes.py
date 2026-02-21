@@ -70,6 +70,19 @@ async def chat_endpoint(
         response = handle_cancel_booking(decision, background_tasks)
         record_lead(response["bot_message"])
         return response
+    
+    # MOSTRAR FOTOS
+    if decision.get("action") == "SHOW_PHOTOS":
+        response = {
+            "bot_message": "Aquí tienes algunos cortes disponibles:",
+            "photos": [
+                "/static/pictures/corte1.jpg",
+                "/static/pictures/corte2.jpg",
+                "/static/pictures/corte3.jpg"
+            ]
+        }
+        record_lead(response["bot_message"])
+        return response
 
     # CHAT normal
     response = handle_chat(user_message, request)
