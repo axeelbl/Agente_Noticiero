@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from app.backend.Bots.chat import decide_and_extract_booking
 from app.backend.services.booking_service import handle_booking, handle_availability, handle_availability_overview, handle_modify_booking, handle_cancel_booking
 from app.backend.services.chat_service import handle_chat
+from app.backend.services.recommend_cut import recommend_cut_by_text
 from app.backend.csv_utils import save_lead
 from app.backend.email_utils import send_csv_email
 import time
@@ -70,20 +71,13 @@ async def chat_endpoint(
         response = handle_cancel_booking(decision, background_tasks)
         record_lead(response["bot_message"])
         return response
-    
-    # MOSTRAR FOTOS
+
+    # Dentro del endpoint /chat
     if decision.get("action") == "SHOW_PHOTOS":
-        response = {
-            "bot_message": "Aquí tienes algunos cortes disponibles:",
-            "photos": [
-                "/static/pictures/corte1.jpg",
-                "/static/pictures/corte2.jpg",
-                "/static/pictures/corte3.jpg"
-            ]
-        }
+        response = recommend_cut_by_text(user_message)
         record_lead(response["bot_message"])
         return response
-
+    
     # CHAT normal
     response = handle_chat(user_message, request)
     record_lead(response["bot_message"])
