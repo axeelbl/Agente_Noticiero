@@ -7,7 +7,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parents[2]  # llega a Agente_Peluquero_CV
 LEADS_FILE = BASE_DIR / "leads.csv"
 
-load_dotenv()
+load_dotenv(override=True)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")

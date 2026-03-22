@@ -19,22 +19,29 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     const chat = new ChatController(ui, avatar, "/chat");
- 
-    // HACERLO GLOBAL - I know this is not the most good way to do it, but I'm hurry now
+    const reserveBtn = document.getElementById("reserveBtn");
+    const manageBtn = document.getElementById("manageBtn");
+
     window.chatUI = ui;
 
-    // Mensaje de bienvenida
+    document.querySelectorAll("[data-prompt]").forEach(button => {
+        button.addEventListener("click", () => {
+            chat.queueMessage(button.dataset.prompt || "");
+        });
+    });
+
+    document.querySelectorAll("[data-trigger-reserve]").forEach(button => {
+        button.addEventListener("click", () => reserveBtn?.click());
+    });
+
+    document.querySelectorAll("[data-trigger-manage]").forEach(button => {
+        button.addEventListener("click", () => manageBtn?.click());
+    });
+
     setTimeout(() => {
         ui.addBotMessageTyping(
-            "¡Hola! 👋 Soy el PeluqueroBot, tu peluquero profesional.\n\n" +
-            "Puedo ayudarte con cortes, precios, reservar cita, modificar o anular citas y enseñarte fotos de los cortes 📸✂️\n\n" +
-            "👉 Para una cita, dime que quieres reservar y estos datos juntos:\n" +
-            "• Tu nombre\n" +
-            "• Servicio (Corte, Barba o Corte + Barba)\n" +
-            "• Día (dd/mm/aaaa)\n" +
-            "• Hora (24h)\n" +
-            "• Teléfono o email\n\n" +
-            "👉 Para ver fotos, solo escribe: ver fotos"
+            "Hola, soy tu asistente de peluqueria.\n\n" +
+            "Te ayudo con cortes, fotos y citas."
         );
     }, 300);
 });

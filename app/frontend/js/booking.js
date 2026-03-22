@@ -1,33 +1,31 @@
 document.addEventListener("DOMContentLoaded", () => {
-    /** ================================
-     *  ELEMENTOS DEL DOM
-     * ================================ */
-    // Modal de reserva
     const reserveBtn = document.getElementById("reserveBtn");
     const bookingModal = document.getElementById("bookingModal");
     const closeBookingBtn = document.getElementById("closeModal");
     const bookingForm = document.getElementById("bookingForm");
-    const dateInput = bookingForm.querySelector("input[name='date']");
+    const dateInput = bookingForm?.querySelector("input[name='date']");
     const timeSelect = document.getElementById("timeSelect");
 
-    // Modal de gestión
     const manageModal = document.getElementById("manageBookingModal");
     const closeManageBtn = document.getElementById("closeManageModal");
     const manageForm = document.getElementById("manageBookingForm");
-    const manageDateInput = manageForm.querySelector("input[name='new_date']");
+    const manageDateInput = manageForm?.querySelector("input[name='new_date']");
     const manageTimeSelect = document.getElementById("manageTimeSelect");
     const modifyBtn = document.getElementById("modifyBtn");
     const cancelBtn = document.getElementById("cancelBtn");
     const manageBtn = document.getElementById("manageBtn");
 
-    /** ================================
-     *  FUNCIONES REUTILIZABLES
-     * ================================ */
-    // Carga horas disponibles en un select
+    function resetSelect(selectElement, placeholder = "Selecciona una hora") {
+        if (!selectElement) return;
+        selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+        selectElement.value = "";
+    }
+
     async function loadAvailableHours(date, selectElement) {
+        if (!selectElement) return;
+
         if (!date) {
-            selectElement.innerHTML = "<option>Selecciona una hora</option>";
-            selectElement.value = "";
+            resetSelect(selectElement);
             return;
         }
 
@@ -39,8 +37,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const hours = await res.json();
 
             selectElement.innerHTML = "";
+
             if (!hours.length) {
-                selectElement.innerHTML = "<option>No hay horas disponibles</option>";
+                selectElement.innerHTML = "<option value=''>No hay horas disponibles</option>";
                 return;
             }
 
@@ -57,82 +56,73 @@ document.addEventListener("DOMContentLoaded", () => {
                 option.textContent = hour;
                 selectElement.appendChild(option);
             });
-
         } catch {
-            selectElement.innerHTML = "<option>Error cargando horas</option>";
+            selectElement.innerHTML = "<option value=''>Error cargando horas</option>";
         }
     }
 
-    // Abrir modal
     function openModal(modal) {
+        if (!modal) return;
         modal.classList.remove("hidden");
+        document.body.classList.add("modal-open");
     }
 
-    // Cerrar modal
     function closeModal(modal) {
+        if (!modal) return;
         modal.classList.add("hidden");
+
+        const hasVisibleModal = Array.from(document.querySelectorAll(".modal")).some(
+            element => !element.classList.contains("hidden")
+        );
+
+        if (!hasVisibleModal) {
+            document.body.classList.remove("modal-open");
+        }
     }
 
-    // ================================
-    // ESCAPAR HTML
-    // ================================
-    function escapeHtml(str) {
-        if (!str) return "";
-        return str
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+    function addChatMessage(message) {
+        if (!window.chatUI?.addBotMessageTyping) return;
+        window.chatUI.addBotMessageTyping(message);
     }
 
-    // ================================
-    // MENSAJES EN EL CHAT (BOT)
-    // ================================
-    function addBotMessageSafe(text) {
-        const container = document.getElementById("chatContainer");
-        const div = document.createElement("div");
-        div.className = "bot-message";
+    document.querySelectorAll("[data-dismiss-modal]").forEach(button => {
+        button.addEventListener("click", () => {
+            closeModal(document.getElementById(button.dataset.dismissModal || ""));
+        });
+    });
 
-        // Convertimos saltos de línea en <br> de forma segura
-        text.split("\n").forEach((line, idx) => {
-            const span = document.createElement("span");
-            span.textContent = line; // ✅ Seguro contra XSS
-            div.appendChild(span);
-            if (idx < text.split("\n").length - 1) {
-                div.appendChild(document.createElement("br"));
+    [bookingModal, manageModal].forEach(modal => {
+        if (!modal) return;
+        modal.addEventListener("click", event => {
+            if (event.target === modal) {
+                closeModal(modal);
+            }
+        });
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+        closeModal(bookingModal);
+        closeModal(manageModal);
+    });
+
+    if (reserveBtn && bookingModal && bookingForm && dateInput && timeSelect) {
+        reserveBtn.addEventListener("click", event => {
+            event.preventDefault();
+            openModal(bookingModal);
+            resetSelect(timeSelect);
+
+            if (dateInput.value) {
+                loadAvailableHours(dateInput.value, timeSelect);
             }
         });
 
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
-    }
-
-    /** ================================
-     *  RESERVA NUEVA
-     * ================================ */
-    if (reserveBtn && bookingModal && bookingForm && dateInput && timeSelect) {
-        // Abrir modal
-        reserveBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            openModal(bookingModal);
-            timeSelect.innerHTML = "<option>Selecciona una hora</option>";
-            timeSelect.value = "";
-            if (dateInput.value) loadAvailableHours(dateInput.value, timeSelect);
-        });
-
-        // Cerrar modal
-        closeBookingBtn.addEventListener("click", () => closeModal(bookingModal));
-
-        // Cambiar fecha → recarga horas
+        closeBookingBtn?.addEventListener("click", () => closeModal(bookingModal));
         dateInput.addEventListener("change", () => loadAvailableHours(dateInput.value, timeSelect));
-
-        // Fecha mínima
         dateInput.min = new Date().toISOString().split("T")[0];
 
-        // Enviar reserva
-        bookingForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
+        bookingForm.addEventListener("submit", async event => {
+            event.preventDefault();
             const data = Object.fromEntries(new FormData(bookingForm));
 
             try {
@@ -142,64 +132,50 @@ document.addEventListener("DOMContentLoaded", () => {
                     body: JSON.stringify(data)
                 });
 
+                const result = await res.json().catch(() => null);
+
                 if (!res.ok) throw new Error();
 
-                alert("✅ Cita reservada correctamente");
+                alert("Cita reservada correctamente");
 
-                if (window.chatUI) {
-                    const { name, service, date, time, contact, booking_uuid } = data;
-                    const message =
-                    `✅ Reserva confirmada ✂️
-
-
-                    👤 Cliente: ${escapeHtml(name)}
-                    ✂️ Servicio: ${escapeHtml(service)}
-                    📅 Fecha: ${escapeHtml(date)}
-                    ⏰ Hora: ${escapeHtml(time)}
-                    📩 Confirmación enviada a: ${escapeHtml(contact)}
-                    ${booking_uuid ? `🆔 ID de reserva: ${escapeHtml(booking_uuid)}` : ''}
-
-                    📍Te esperamos en Calle Lorem Ipsum!`;
-
-                    sendBotMessageSafe(message);
-                }
+                addChatMessage(
+                    "Reserva confirmada\n\n" +
+                    `Cliente: ${data.name}\n` +
+                    `Servicio: ${data.service}\n` +
+                    `Fecha: ${data.date}\n` +
+                    `Hora: ${data.time}\n` +
+                    `Contacto: ${data.contact}\n` +
+                    `${result?.booking_uuid ? `ID de reserva: ${result.booking_uuid}\n` : ""}` +
+                    "\nTe esperamos en la peluqueria."
+                );
 
                 closeModal(bookingModal);
                 bookingForm.reset();
-                timeSelect.innerHTML = "<option>Selecciona una hora</option>";
-                timeSelect.value = "";
-
+                resetSelect(timeSelect);
             } catch {
-                alert("❌ Esa hora ya no está disponible");
+                alert("Esa hora ya no esta disponible");
             }
         });
     }
 
-    /** ================================
-     *  GESTIÓN DE RESERVA (MODIFICAR / CANCELAR)
-     * ================================ */
     if (manageModal && manageForm && manageBtn && manageDateInput && manageTimeSelect) {
-        // Abrir modal de gestión
-        manageBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            openManageBookingModal();
-        });
-
         window.openManageBookingModal = function () {
             openModal(manageModal);
             manageForm.reset();
-            manageTimeSelect.innerHTML = "<option value=''>Selecciona una hora</option>";
+            resetSelect(manageTimeSelect);
         };
 
-        // Cerrar modal
-        closeManageBtn.addEventListener("click", () => closeModal(manageModal));
+        manageBtn.addEventListener("click", event => {
+            event.preventDefault();
+            window.openManageBookingModal();
+        });
 
-        // Cambiar fecha → recarga horas
+        closeManageBtn?.addEventListener("click", () => closeModal(manageModal));
+        manageDateInput.min = new Date().toISOString().split("T")[0];
         manageDateInput.addEventListener("change", () => loadAvailableHours(manageDateInput.value, manageTimeSelect));
 
-        // MODIFICAR reserva
-        modifyBtn.addEventListener("click", async (e) => {
-            e.preventDefault();
+        modifyBtn?.addEventListener("click", async event => {
+            event.preventDefault();
 
             const data = {
                 booking_uuid: manageForm.booking_uuid.value,
@@ -208,8 +184,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 new_time: manageForm.new_time.value
             };
 
-            if (!data.booking_uuid || !data.contact ||!data.new_date || !data.new_time) {
-                alert("❌ Completa todos los campos para modificar");
+            if (!data.booking_uuid || !data.contact || !data.new_date || !data.new_time) {
+                alert("Completa todos los campos para modificar");
                 return;
             }
 
@@ -221,50 +197,45 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 if (res.status === 404) {
-                    alert("❌ No se ha encontrado la cita");
+                    alert("No se ha encontrado la cita");
                     return;
                 }
 
                 if (!res.ok) throw new Error();
 
-                alert("✅ Reserva modificada correctamente");
+                alert("Reserva modificada correctamente");
 
-                if (window.chatUI) {
-                    const message = 
-                    `🔁 Reserva Modificada 
+                addChatMessage(
+                    "Reserva modificada\n\n" +
+                    `ID: ${data.booking_uuid}\n` +
+                    `Nueva fecha: ${data.new_date}\n` +
+                    `Nueva hora: ${data.new_time}\n\n` +
+                    "Te esperamos en la peluqueria."
+                );
 
-
-                    🆔 ID: ${escapeHtml(data.booking_uuid)}
-                    📅 Nueva fecha: ${escapeHtml(data.new_date)}
-                    ⏰ Nueva hora: ${escapeHtml(data.new_time)}
-
-                    📍Te esperamos en Calle Lorem Ipsum!`;
-                    sendBotMessageSafe(message);
-                }
                 closeModal(manageModal);
                 manageForm.reset();
-
+                resetSelect(manageTimeSelect);
             } catch {
-                alert("❌ Error al modificar la reserva");
+                alert("Error al modificar la reserva");
             }
         });
 
-        // CANCELAR reserva
-        cancelBtn.addEventListener("click", async () => {
+        cancelBtn?.addEventListener("click", async () => {
             const booking_uuid = manageForm.booking_uuid.value;
             const contact = manageForm.contact.value;
 
             if (!contact) {
-                alert("❌ Ingresa el contacto de la reserva para cancelar");
+                alert("Ingresa el contacto de la reserva para cancelar");
                 return;
             }
 
             if (!booking_uuid) {
-                alert("❌ Ingresa el ID de reserva para cancelar");
+                alert("Ingresa el ID de reserva para cancelar");
                 return;
             }
 
-            if (!confirm("⚠️ ¿Seguro que quieres cancelar la cita?")) return;
+            if (!confirm("Seguro que quieres cancelar la cita?")) return;
 
             try {
                 const res = await fetch("/booking/cancel", {
@@ -272,45 +243,28 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ booking_uuid, contact })
                 });
-                
+
                 if (res.status === 404) {
-                    alert("❌ No se ha encontrado la cita");
+                    alert("No se ha encontrado la cita");
                     return;
                 }
-                
+
                 if (!res.ok) throw new Error();
 
-                alert("✅ Reserva cancelada correctamente");
+                alert("Reserva cancelada correctamente");
 
-                if (window.chatUI) {
-                    const message = 
-                    `❌ Reserva Cancelada
+                addChatMessage(
+                    "Reserva cancelada\n\n" +
+                    `ID: ${booking_uuid}\n` +
+                    "La cita ha sido anulada correctamente."
+                );
 
-
-                    🆔 ID: ${escapeHtml(booking_uuid)}
-                    Tu cita ha sido cancelada correctamente.`;
-
-                    sendBotMessageSafe(message);
-                }
                 closeModal(manageModal);
                 manageForm.reset();
-
+                resetSelect(manageTimeSelect);
             } catch {
-                alert("❌ Error al cancelar la reserva");
+                alert("Error al cancelar la reserva");
             }
         });
-    }
-
-
-    // ================================
-    // FUNCIÓN SEGURA PARA ENVIAR MENSAJES AL BOT
-    // ================================
-    function sendBotMessageSafe(message) {
-        if (!window.chatUI || !window.chatUI.addBotMessageTyping) return;
-
-        // Convertimos saltos de línea en "\n" (el método de chatUI los mostrará correctamente)
-        const safeMessage = message.split("\n").map(line => escapeHtml(line)).join("\n");
-
-        window.chatUI.addBotMessageTyping(safeMessage);
     }
 });

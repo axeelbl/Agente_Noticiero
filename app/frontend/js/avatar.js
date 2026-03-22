@@ -15,7 +15,9 @@ export class AvatarController {
     startBlinking() {
         setInterval(() => {
             if (this.talkingInterval) return;
+
             this.baseFace.src = "/static/pictures/eyes_closed_mouth_closed.png";
+
             setTimeout(() => {
                 this.baseFace.src = "/static/pictures/eyes_open_mouth_closed.png";
             }, 200);
@@ -24,14 +26,16 @@ export class AvatarController {
 
     startTalking() {
         if (this.talkingInterval) return;
+
         this.avatarHalo.style.opacity = "1";
-        this.avatar.style.transform = "scale(1.1)";
+        this.avatar.style.transform = "scale(1.04)";
 
         this.talkingInterval = setInterval(() => {
             this.mouthOpen = !this.mouthOpen;
             this.mouthOpenImg.style.opacity = this.mouthOpen ? "1" : "0";
         }, 300);
-        this.avatarStatus.textContent = "🟡 Pensando...";
+
+        this.avatarStatus.textContent = "Pensando...";
     }
 
     stopTalking() {
@@ -41,6 +45,6 @@ export class AvatarController {
         this.mouthOpenImg.style.opacity = "0";
         this.avatarHalo.style.opacity = "0";
         this.avatar.style.transform = "scale(1)";
-        this.avatarStatus.textContent = "🟢 Online";
+        this.avatarStatus.textContent = "Online";
     }
 }

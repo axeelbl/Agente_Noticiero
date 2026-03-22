@@ -1,39 +1,134 @@
-/* =========================
-RESPONSIVE / MÓVIL
-========================= */
-@media (max-width: 768px) {
-    #avatar { width: 200px; height: 200px; }
-    #avatarName { font-size: 18px; }
-    #avatarStatus { font-size: 13px; }
-    #profileLinks { gap: 12px; }
-    #profileLinks a { width: 90px; font-size: 12px; padding: 6px 0; }
-    .chat-container { padding: 16px; gap: 8px; }
-    .message { max-width: 90%; font-size: 14px; padding: 12px 14px; }
-    .input-container { flex-direction: column; gap: 8px; padding: 12px; }
-    #userInput { width: 100%; font-size: 14px; padding: 12px 14px; }
-    #sendBtn, #clearBtn { width: 100%; font-size: 14px; padding: 12px 0; }
-    #avatarContainer { padding: 18px 14px 14px; }
-    #avatar { width: 180px; height: 180px; margin-bottom: 10px; }
-    #avatarName { font-size: 17px; margin-top: 4px; }
-    #avatarStatus { font-size: 12px; margin-top: 4px; }
-    #profileLinks { margin-top: 12px; gap: 10px; }
-    #profileLinks a {min-width: 110px;width: auto;white-space: nowrap;font-size: 12px;padding: 6px 12px;}
-    #profileLinks svg { width: 16px; height: 16px; }
-    .input-container { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 8px; padding: 10px; }
-    #sendBtn { grid-column: 1; grid-row: 1; font-size: 13px; padding: 8px 0; border-radius: 10px; }
-    #clearBtn { grid-column: 2; grid-row: 1; font-size: 13px; padding: 8px 0; border-radius: 10px; }
-    #userInput { grid-column: 1 / -1; grid-row: 2; font-size: 14px; padding: 12px 14px; }
+@media (max-width: 1180px) {
+    body {
+        padding: 10px;
+    }
+
+    .app-shell {
+        min-height: calc(100vh - 20px);
+        padding: 14px;
+    }
+
+    .workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: auto auto;
+        overflow: visible;
+        padding-right: 0;
+    }
 }
 
-@media (max-width: 480px) {
-    #avatar { width: 160px; height: 160px; }
-    #avatarName { font-size: 16px; }
-    #avatarStatus { font-size: 12px; }
-    .message { font-size: 13px; padding: 10px 12px; }
-    #avatar { width: 150px; height: 150px; }
-    #avatarName { font-size: 15px; }
-    #avatarStatus { font-size: 11px; }
-    #profileLinks a { width: 80px; font-size: 11px; }
-    #sendBtn, #clearBtn { font-size: 12px; padding: 7px 0; }
-    #userInput { font-size: 13px; }
+@media (max-width: 760px) {
+    body {
+        padding: 0;
+    }
+
+    .app-shell {
+        min-height: 100vh;
+        border-radius: 0;
+        border: 0;
+        padding: 12px;
+    }
+
+    .app-header,
+    .chat-panel,
+    .sidebar-card,
+    .modal-content {
+        padding: 14px;
+    }
+
+    .app-header,
+    .chat-panel-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-actions,
+    .panel-actions,
+    .external-links {
+        width: 100%;
+    }
+
+    .header-actions > *,
+    .panel-actions > *,
+    .external-links > * {
+        flex: 1 1 0;
+    }
+
+    .chat-panel-copy h2 {
+        font-size: 2.1rem;
+    }
+
+    .chat-panel-note {
+        white-space: normal;
+    }
+
+    .chat-container {
+        min-height: 180px;
+        max-height: min(46vh, 460px);
+    }
+
+    .sidebar {
+        display: grid;
+        gap: 12px;
+    }
+
+    .quick-actions,
+    #profileLinks {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .look-item {
+        grid-template-columns: 50px 1fr;
+    }
+
+    .look-thumb {
+        width: 50px;
+        height: 50px;
+    }
+
+    .message,
+    .chat-gallery {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .input-container {
+        grid-template-columns: 1fr;
+    }
+
+    #sendBtn,
+    #clearBtn {
+        min-height: 46px;
+    }
+
+    .photo-gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .modal {
+        padding: 12px;
+    }
+
+    .modal-content {
+        width: 100%;
+        max-height: calc(100vh - 24px);
+        border-radius: 18px;
+    }
+
+    .viewer-close {
+        top: 14px;
+        right: 14px;
+    }
+
+    .left {
+        left: 12px;
+    }
+
+    .right {
+        right: 12px;
+    }
 }
