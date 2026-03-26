@@ -1,13 +1,21 @@
-# Envío de CSV por email (SendGrid)
-
 import base64
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
-from .config import SENDGRID_API_KEY, SENDGRID_FROM, SENDGRID_TO, LEADS_FILE
-from .csv_utils import get_last_modified
 import os
 
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import (
+    Attachment,
+    Disposition,
+    FileContent,
+    FileName,
+    FileType,
+    Mail,
+)
+
+from .config import LEADS_FILE, SENDGRID_API_KEY, SENDGRID_FROM, SENDGRID_TO
+from .csv_utils import get_last_modified
+
 LAST_SENT = 0
+
 
 def send_csv_email():
     global LAST_SENT
@@ -21,28 +29,28 @@ def send_csv_email():
         return
 
     try:
-        with open(LEADS_FILE, "rb") as f:
-            encoded_file = base64.b64encode(f.read()).decode()
+        with open(LEADS_FILE, "rb") as file_handle:
+            encoded_file = base64.b64encode(file_handle.read()).decode()
 
         attachment = Attachment(
             file_content=FileContent(encoded_file),
             file_type=FileType("text/csv"),
             file_name=FileName("leads.csv"),
-            disposition=Disposition("attachment")
+            disposition=Disposition("attachment"),
         )
 
         message = Mail(
             from_email=SENDGRID_FROM,
             to_emails=SENDGRID_TO,
-            subject="AxelBot – Leads (nuevos)",
-            plain_text_content="Hay nuevos leads desde el último envío."
+            subject="AI News Anchor - Leads nuevos",
+            plain_text_content="Hay nuevos leads desde el último envío.",
         )
         message.attachment = attachment
 
-        sg = SendGridAPIClient(SENDGRID_API_KEY)
-        response = sg.send(message)
+        client = SendGridAPIClient(SENDGRID_API_KEY)
+        response = client.send(message)
         print("CSV enviado, status:", response.status_code)
 
         LAST_SENT = mtime
-    except Exception as e:
-        print("Error enviando CSV:", e)
+    except Exception as exc:
+        print("Error enviando CSV:", exc)

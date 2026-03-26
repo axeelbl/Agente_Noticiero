@@ -1,84 +1,64 @@
-from fastapi import APIRouter, Request, BackgroundTasks
-from pydantic import BaseModel
+import time
+from typing import Literal
 
-from app.backend.Bots.chat import decide_and_extract_booking
-from app.backend.services.booking_service import handle_booking, handle_availability, handle_availability_overview, handle_modify_booking, handle_cancel_booking
-from app.backend.services.chat_service import handle_chat
-from app.backend.services.recommend_cut import recommend_cut_by_text
+from fastapi import APIRouter, Request
+from pydantic import BaseModel, Field
+
+from app.backend.Bots.chat import decide_news_action
+from app.backend.core.security import limiter
 from app.backend.csv_utils import save_lead
 from app.backend.email_utils import send_csv_email
-import time
-
-from app.backend.core.security import limiter
+from app.backend.services.chat_service import handle_chat, handle_live_feed_request, handle_news_request
 
 router = APIRouter()
 
+
+class HistoryItem(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
 class MessageRequest(BaseModel):
     user_message: str
+    history: list[HistoryItem] = Field(default_factory=list)
+
 
 @router.post("/chat")
 @limiter.limit("20/minute")
-async def chat_endpoint(
-    msg: MessageRequest,
-    request: Request,
-    background_tasks: BackgroundTasks
-):
-    user_message = msg.user_message
+async def chat_endpoint(msg: MessageRequest, request: Request):
+    user_message = msg.user_message.strip()
+    history = [item.model_dump() for item in msg.history][-8:]
+
     if len(user_message) > 500:
         return {"bot_message": "Mensaje demasiado largo."}
-    decision = decide_and_extract_booking(user_message)
 
-    # Función para guardar lead y enviar CSV
+    start_time = time.time()
+    decision = decide_news_action(user_message, history)
+
     def record_lead(bot_reply: str):
         meta = {
-            "ip": request.client.host,
+            "ip": request.client.host if request.client else "",
             "user_agent": request.headers.get("user-agent", ""),
             "language": request.headers.get("accept-language", ""),
             "referer": request.headers.get("referer", ""),
-            "response_time": round(time.time() - start_time, 2)
+            "response_time": round(time.time() - start_time, 2),
         }
         save_lead(user_message, bot_reply, meta)
         try:
             send_csv_email()
-        except Exception as e:
-            print("Error enviando CSV:", e)
+        except Exception as exc:
+            print("Error enviando CSV:", exc)
 
-    start_time = time.time()  # Para medir tiempo de respuesta
+    if decision.get("action") == "SEARCH_NEWS":
+        response = await handle_news_request(user_message, history, decision)
+    else:
+        response = await handle_chat(user_message, history)
 
-    # RESERVA
-    if decision.get("action") == "RESERVAR":
-        response = handle_booking(decision, background_tasks)
-        record_lead(response["bot_message"])
-        return response
-
-    # DISPONIBILIDAD
-    if decision.get("action") == "CHECK_AVAILABILITY":
-        if decision.get("availability_date"):
-            response = handle_availability(decision.get("availability_date"))
-        else:
-            response = handle_availability_overview()
-        record_lead(response["bot_message"])
-        return response
-
-    # MODIFICAR RESERVA
-    if decision.get("action") == "MODIFY_BOOKING":
-        response = handle_modify_booking(decision, background_tasks)
-        record_lead(response["bot_message"])
-        return response
-
-    # CANCELAR RESERVA
-    if decision.get("action") == "CANCEL_BOOKING":
-        response = handle_cancel_booking(decision, background_tasks)
-        record_lead(response["bot_message"])
-        return response
-
-    # Dentro del endpoint /chat
-    if decision.get("action") == "SHOW_PHOTOS":
-        response = recommend_cut_by_text(user_message)
-        record_lead(response["bot_message"])
-        return response
-    
-    # CHAT normal
-    response = handle_chat(user_message, request)
     record_lead(response["bot_message"])
     return response
+
+
+@router.get("/live-feed")
+@limiter.limit("30/minute")
+async def live_feed_endpoint(request: Request):
+    return await handle_live_feed_request()

@@ -28,14 +28,14 @@ export class AvatarController {
         if (this.talkingInterval) return;
 
         this.avatarHalo.style.opacity = "1";
-        this.avatar.style.transform = "scale(1.04)";
+        this.avatar.style.transform = "scale(1.03)";
 
         this.talkingInterval = setInterval(() => {
             this.mouthOpen = !this.mouthOpen;
             this.mouthOpenImg.style.opacity = this.mouthOpen ? "1" : "0";
         }, 300);
 
-        this.avatarStatus.textContent = "Pensando...";
+        this.avatarStatus.textContent = "Analizando…";
     }
 
     stopTalking() {
@@ -45,6 +45,6 @@ export class AvatarController {
         this.mouthOpenImg.style.opacity = "0";
         this.avatarHalo.style.opacity = "0";
         this.avatar.style.transform = "scale(1)";
-        this.avatarStatus.textContent = "Online";
+        this.avatarStatus.textContent = "En directo";
     }
 }

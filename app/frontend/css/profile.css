@@ -4,30 +4,21 @@
     gap: 8px;
 }
 
-#profileLinks a {
+#profileLinks button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    min-height: 42px;
+    min-height: 44px;
     padding: 10px 12px;
-    border-radius: 12px;
-    background: var(--surface-soft);
+    border-radius: 14px;
+    background: rgba(17, 46, 69, 0.82);
     border: 1px solid var(--line);
-    text-decoration: none;
     color: var(--text);
     font-size: 0.84rem;
     font-weight: 700;
 }
 
-#profileLinks a:hover,
-#profileLinks a:focus-visible {
+#profileLinks button:hover,
+#profileLinks button:focus-visible {
     border-color: var(--line-strong);
-}
-
-#profileLinks svg {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
-    flex: 0 0 auto;
 }

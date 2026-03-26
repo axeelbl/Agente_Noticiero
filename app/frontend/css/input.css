@@ -7,41 +7,44 @@
 #userInput {
     width: 100%;
     min-width: 0;
-    padding: 13px 14px;
-    border-radius: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
     border: 1px solid var(--line);
-    background: #ffffff;
-    font-size: 0.94rem;
+    background:
+        linear-gradient(180deg, rgba(6, 16, 28, 0.98), rgba(7, 18, 31, 0.98)),
+        linear-gradient(90deg, rgba(93, 198, 255, 0.05), transparent);
+    color: var(--text);
+    font-size: 0.96rem;
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 #userInput::placeholder {
-    color: rgba(108, 96, 86, 0.8);
+    color: rgba(163, 182, 203, 0.76);
 }
 
 #userInput:focus {
-    border-color: rgba(179, 122, 69, 0.4);
-    box-shadow: 0 0 0 4px rgba(179, 122, 69, 0.12);
+    border-color: rgba(93, 198, 255, 0.46);
+    box-shadow: 0 0 0 4px rgba(93, 198, 255, 0.1);
 }
 
 #sendBtn,
 #clearBtn {
-    min-width: 104px;
+    min-width: 112px;
     padding: 0 16px;
-    border-radius: 12px;
+    border-radius: 16px;
     border: 1px solid transparent;
     font-size: 0.9rem;
     font-weight: 700;
 }
 
 #sendBtn {
-    background: linear-gradient(135deg, var(--accent), #c8925b);
-    color: #1f1712;
+    background: linear-gradient(135deg, var(--accent), #209ce1);
+    color: #03101a;
+    box-shadow: 0 12px 24px rgba(93, 198, 255, 0.2);
 }
 
 #clearBtn {
-    background: #ffffff;
+    background: rgba(14, 29, 46, 0.92);
     color: var(--text);
     border-color: var(--line);
 }
