@@ -9,6 +9,9 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 load_dotenv(override=True)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_FROM = os.getenv("RESEND_FROM") or "AI News Anchor <onboarding@resend.dev>"
+RESEND_TO = os.getenv("RESEND_TO") or os.getenv("SENDGRID_TO")
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 SENDGRID_FROM = os.getenv("SENDGRID_FROM")
 SENDGRID_TO = os.getenv("SENDGRID_TO")
