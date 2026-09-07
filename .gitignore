@@ -19,3 +19,6 @@ node_modules/
 dist/
 build/
 uvicorn_tmp.log
+*.log
+.coverage
+.pytest_cache/

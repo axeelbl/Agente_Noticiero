@@ -1,3 +1,5 @@
+import asyncio
+
 from app.backend.Bots.Prompts import SYSTEM_PROMPT
 from app.backend.Bots.chat import ask_groq
 from app.backend.services.news_service import search_news
@@ -12,7 +14,7 @@ async def handle_chat(user_message, history=None):
         {"role": "user", "content": user_message},
     ]
 
-    bot_reply = ask_groq(messages, temperature=0.6)
+    bot_reply = await asyncio.to_thread(ask_groq, messages, temperature=0.6)
     return {"bot_message": bot_reply}
 
 
@@ -54,7 +56,7 @@ async def handle_news_request(user_message, history=None, decision=None):
         {"role": "user", "content": summary_request},
     ]
 
-    bot_reply = ask_groq(messages, temperature=0.35)
+    bot_reply = await asyncio.to_thread(ask_groq, messages, temperature=0.35)
     photos = [article["image_url"] for article in articles if article.get("image_url")]
 
     return {

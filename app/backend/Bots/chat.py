@@ -1,17 +1,22 @@
 import json
 import re
 import unicodedata
+from functools import lru_cache
 
 from groq import Groq
 
 from ..config import GROQ_API_KEY
 from .Prompts import NEWS_ROUTING_PROMPT
 
-client = Groq(api_key=GROQ_API_KEY)
+@lru_cache(maxsize=1)
+def get_client() -> Groq:
+    if not GROQ_API_KEY:
+        raise RuntimeError("GROQ_API_KEY is not configured")
+    return Groq(api_key=GROQ_API_KEY)
 
 
 def ask_groq(messages, temperature=0.7):
-    response = client.chat.completions.create(
+    response = get_client().chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=messages,
         temperature=temperature,
@@ -22,20 +27,23 @@ def ask_groq(messages, temperature=0.7):
 def decide_news_action(user_message, history=None):
     history_excerpt = _build_history_excerpt(history)
 
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[
-            {"role": "system", "content": NEWS_ROUTING_PROMPT},
-            {
-                "role": "user",
-                "content": (
-                    f"Historial reciente:\n{history_excerpt}\n\n"
-                    f"Mensaje actual:\n{user_message}"
-                ),
-            },
-        ],
-        temperature=0,
-    )
+    try:
+        response = get_client().chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": NEWS_ROUTING_PROMPT},
+                {
+                    "role": "user",
+                    "content": (
+                        f"Historial reciente:\n{history_excerpt}\n\n"
+                        f"Mensaje actual:\n{user_message}"
+                    ),
+                },
+            ],
+            temperature=0,
+        )
+    except Exception:
+        return _fallback_decision(user_message)
 
     content = response.choices[0].message.content
 
